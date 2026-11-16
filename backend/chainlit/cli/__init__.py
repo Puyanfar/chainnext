@@ -47,9 +47,9 @@ def assert_app():
         )
 
 
-# Create the main command group for Chainlit CLI
+# CLI command remains `chainlit` (PyPI package name is chainnext).
 @click.group(context_settings={"auto_envvar_prefix": "CHAINLIT"})
-@click.version_option(prog_name="Chainlit")
+@click.version_option(prog_name="chainlit")
 def cli():
     return
 

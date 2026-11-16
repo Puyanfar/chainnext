@@ -1,6 +1,8 @@
-# Chainlit Development Instructions
+# Chainnext Development Instructions
 
-Chainlit is a Python framework for building conversational AI applications with Python backend and React frontend. It uses uv for Python dependency management and pnpm for Node.js packages.
+Chainnext is a fork of Chainlit: a Python framework for building conversational AI applications with a Python backend and React frontend. It uses uv for Python dependency management and pnpm for Node.js packages.
+
+The PyPI package is **`chainnext`** (`pip install chainnext`). The Python import, CLI, package directory, and config names remain **`chainlit`**: `import chainlit as cl`, `uv run chainlit run …`, `backend/chainlit/`, `.chainlit/config.toml`. Do not `import chainnext`.
 
 Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
@@ -71,7 +73,7 @@ Always reference these instructions first and fallback to search or bash command
 ### Manual Validation Requirements
 
 - **ALWAYS** manually validate any changes by running complete scenarios.
-- **ALWAYS** test the Chainlit application after making changes.
+- **ALWAYS** test the Chainnext application after making changes.
 - Create a test app and verify it runs: `uv run chainlit run /path/to/test.py -h`
 - **ALWAYS** run through at least one complete user workflow after making changes.
 
@@ -141,7 +143,9 @@ uv run scripts/format.py --check
 
 ## Common Tasks
 
-### Creating a New Chainlit App
+### Creating a New Chainnext App
+
+Install the PyPI package with `pip install chainnext` (or develop in this repo with `uv sync`). Application code still imports `chainlit`:
 
 ```python
 # Create app.py

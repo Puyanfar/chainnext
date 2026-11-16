@@ -2,6 +2,18 @@
 
 This document outlines the steps for maintainers to create a new release of the project.
 
+The PyPI package name is **`chainnext`**. The version file still lives at
+`backend/chainlit/version.py` because the import package is `chainlit`.
+Publishing uploads to https://pypi.org/project/chainnext.
+
+Releases publish only that Python package, via `.github/workflows/publish.yaml`.
+Frontend and copilot assets are built into the wheel; they are not separate
+downloads. JS packages (`@chainlit/react-client`, `@chainlit/copilot`) are
+**not** published to npm. `.github/workflows/publish-libs.yaml` is kept from
+upstream but npm publishing is skipped (no `release` trigger; the job only
+builds and prints a skip message). Re-enable that workflow only if we start
+publishing JS packages to npm.
+
 ## Prerequisites
 
 - You must have maintainer permissions on the repo to create a new release.
@@ -40,4 +52,4 @@ This document outlines the steps for maintainers to create a new release of the 
 - Append "-rc" to the version number (e.g. 4.0.4-rc)
 - Normally only bug fixes, no new features, between an RC and the final release version
 
-Ping @dokterbob or @willydouhard for any questions or issues with the release process. Happy releasing!
+Happy releasing!

@@ -15,7 +15,7 @@ of the likely impact. The more context you can provide, the faster we can triage
 
 ## What to Expect
 
-- **Acknowledgement**: we aim to acknowledge reports within **5 business days**. Chainlit is
+- **Acknowledgement**: we aim to acknowledge reports within **5 business days**. Chainnext is
   maintained by a small team and we are not always available at the same time, so occasional
   delays are possible. If you have not heard back after a week, a follow-up nudge is welcome.
 - **Resolution target**: we target a fix or mitigation within **90 days** of the initial
@@ -28,7 +28,9 @@ of the likely impact. The more context you can provide, the faster we can triage
 
 ## Scope
 
-Chainlit is a Python/TypeScript framework for building conversational AI applications.
+Chainnext is a Python/TypeScript framework for building conversational AI applications.
+It is a fork of Chainlit: the PyPI package is `chainnext`, while the Python import and
+CLI remain `chainlit`.
 Security-relevant areas include the FastAPI/SocketIO backend, authentication flows (JWT,
 OAuth), the data persistence layer, and file upload handling.
 
@@ -36,7 +38,7 @@ When reporting, please note which features you had enabled and how the app was c
 as that context helps us triage accurately.
 
 Issues in third-party dependencies are generally best reported upstream, though we are happy
-to discuss whether a Chainlit-level workaround makes sense in the meantime.
+to discuss whether a Chainnext-level workaround makes sense in the meantime.
 
 ## No Bug Bounty
 
@@ -51,4 +53,4 @@ If you act in good faith — give us a reasonable window to respond, avoid acces
 data beyond what is needed to demonstrate the issue, and avoid disrupting live services —
 we will treat your report with the same good faith in return.
 
-Thank you for helping keep Chainlit and its users safe.
+Thank you for helping keep Chainnext and its users safe.

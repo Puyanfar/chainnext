@@ -1,6 +1,6 @@
 {
   "name": "@chainlit/react-client",
-  "description": "Websocket client to connect to your chainlit app.",
+  "description": "Websocket client to connect to your chainlit/chainnext app.",
   "version": "0.5.0",
   "scripts": {
     "dev": "tsup src/index.ts --clean --format esm,cjs --dts  --external react --external recoil --minify --sourcemap --treeshake",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Chainlit/chainlit.git",
+    "url": "git+https://github.com/Puyanfar/chainnext.git",
     "directory": "libs/react-client"
   },
   "private": false,

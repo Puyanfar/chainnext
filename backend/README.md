@@ -1,47 +1,46 @@
-<h1 align="center">Welcome to Chainlit 👋</h1>
+<h1 align="center">Welcome to Chainnext 👋</h1>
 
 <p align="center">
 <b>Build python production-ready conversational AI applications in minutes, not weeks ⚡️</b>
-
-</p>
-<p align="center">
-   <a href="https://discord.gg/k73SQ3FyUh" target="_blank">
-   <img src="https://img.shields.io/discord/1088038867602526210?logo=discord&labelColor=%20%235462eb&logoColor=%20%23f5f5f5&color=%20%235462eb"
-      alt="chat on Discord"></a>
-    <a href="https://twitter.com/chainlit_io" rel="nofollow"><img alt="Twitter" src="https://img.shields.io/twitter/url/https/twitter.com/chainlit_io.svg?style=social&label=Follow%20%40chainlit_io" style="max-width:100%;"></a>
-    <a href="https://pypistats.org/packages/chainlit" rel="nofollow"><img alt="Downloads" src="https://img.shields.io/pypi/dm/chainlit" style="max-width:100%;"></a>
-        <a href="https://github.com/chainlit/chainlit/graphs/contributors" rel="nofollow"><img alt="Contributors" src="https://img.shields.io/github/contributors/chainlit/chainlit" style="max-width:100%;"></a>
-    <a href="https://github.com/Chainlit/chainlit/actions/workflows/ci.yaml" rel="nofollow"><img alt="CI" src="https://github.com/Chainlit/chainlit/actions/workflows/ci.yaml/badge.svg" style="max-width:100%;"></a>
-</p>
-
-> ⚠️ **Notice:** Chainlit is now community-maintained.
->
-> As of May 1st 2025, the original Chainlit team has stepped back from active development. The project is maintained by @Chainlit/chainlit-maintainers under a formal Maintainer Agreement.
->
-> Maintainers are responsible for code review, releases, and security.  
-> Chainlit SAS provides no warranties on future updates.
->
-> Want to help maintain? [Apply here →](https://docs.google.com/forms/d/e/1FAIpQLSf6CllNWnKBnDIoj0m-DnHU6b0dj8HYFGixKy-_qNi_rD4iNA/viewform)
-
-<p align="center">
-    <a href="https://chainlit.io"><b>Website</b></a>  •  
-    <a href="https://docs.chainlit.io"><b>Documentation</b></a>  •  
-    <a href="https://help.chainlit.io"><b>Chainlit Help</b></a>  •  
-    <a href="https://github.com/Chainlit/cookbook"><b>Cookbook</b></a>
 </p>
 
 <p align="center">
-    <a href="https://trendshift.io/repositories/6708" target="_blank"><img src="https://trendshift.io/api/badge/repositories/6708" alt="Chainlit%2Fchainlit | Trendshift" style="width: 250px; height: 45px;" width="250" height="45"/></a>
+    <a href="https://pypi.org/project/chainnext" rel="nofollow"><img alt="PyPI" src="https://img.shields.io/pypi/v/chainnext" style="max-width:100%;"></a>
+    <a href="https://pypi.org/project/chainnext" rel="nofollow"><img alt="Downloads" src="https://img.shields.io/pypi/dm/chainnext" style="max-width:100%;"></a>
+    <a href="https://github.com/Puyanfar/chainnext/graphs/contributors" rel="nofollow"><img alt="Contributors" src="https://img.shields.io/github/contributors/Puyanfar/chainnext" style="max-width:100%;"></a>
+    <a href="https://github.com/Puyanfar/chainnext/actions/workflows/ci.yaml" rel="nofollow"><img alt="CI" src="https://github.com/Puyanfar/chainnext/actions/workflows/ci.yaml/badge.svg" style="max-width:100%;"></a>
 </p>
 
-https://github.com/user-attachments/assets/b3738aba-55c0-42fa-ac00-6efd1ee0d148
+Chainnext is a fork of the archived [Chainlit](https://github.com/Chainlit/chainlit) project. The goal is to keep the familiar Chainlit app API while distributing a maintained package under a new name.
+
+<p align="center">
+    <a href="https://github.com/Puyanfar/chainnext"><b>Repository</b></a>  •
+    <a href="https://docs.chainlit.io"><b>Upstream Chainlit docs</b></a>  •
+    <a href="https://github.com/Chainlit/cookbook"><b>Upstream cookbook</b></a>
+</p>
+
+## Names: PyPI vs import vs CLI
+
+The **PyPI / GitHub name is `chainnext`**. The **Python import, CLI, and on-disk config names stay `chainlit`** so existing apps keep working.
+
+| What                  | Name          | Example                                            |
+| --------------------- | ------------- | -------------------------------------------------- |
+| GitHub repository     | `chainnext`   | `https://github.com/Puyanfar/chainnext`            |
+| PyPI package          | `chainnext`   | `pip install chainnext`                            |
+| Python import         | `chainlit`    | `import chainlit as cl` / `from chainlit import *` |
+| CLI                   | `chainlit`    | `chainlit run app.py` / `chainlit hello`           |
+| Config directory      | `.chainlit/`  | `.chainlit/config.toml`                            |
+| Welcome file          | `chainlit.md` | project-root markdown shown in the UI              |
+| Environment variables | `CHAINLIT_*`  | `CHAINLIT_AUTH_SECRET`, `CHAINLIT_PORT`, …         |
+
+Do **not** `pip install chainlit` for this fork, and do **not** `import chainnext` — that module does not exist.
 
 ## Installation
 
 Open a terminal and run:
 
 ```sh
-pip install chainlit
+pip install chainnext
 chainlit hello
 ```
 
@@ -52,7 +51,7 @@ If this opens the `hello app` in your browser, you're all set!
 The latest in-development version can be installed straight from GitHub with:
 
 ```sh
-pip install git+https://github.com/Chainlit/chainlit.git#subdirectory=backend/
+pip install git+https://github.com/Puyanfar/chainnext.git#subdirectory=backend/
 ```
 
 (Requires Node and pnpm installed on the system.)
@@ -104,9 +103,9 @@ chainlit run demo.py -w
 
 ## 📚 More Examples - Cookbook
 
-You can find various examples of Chainlit apps [here](https://github.com/Chainlit/cookbook) that leverage tools and services such as OpenAI, Anthropiс, LangChain, LlamaIndex, ChromaDB, Pinecone and more.
+You can find various examples of Chainlit-compatible apps [here](https://github.com/Chainlit/cookbook) that leverage tools and services such as OpenAI, Anthropic, LangChain, LlamaIndex, ChromaDB, Pinecone and more.
 
-Tell us what you would like to see added in Chainlit using the Github issues or on [Discord](https://discord.gg/k73SQ3FyUh).
+Tell us what you would like to see added in Chainnext using the GitHub issues.
 
 ## 💁 Contributing
 
@@ -116,4 +115,4 @@ For detailed information on how to contribute, see [here](/CONTRIBUTING.md).
 
 ## 📃 License
 
-Chainlit is open-source and licensed under the [Apache 2.0](LICENSE) license.
+Chainnext is a fork of Chainlit and is open-source under the [Apache 2.0](LICENSE) license.

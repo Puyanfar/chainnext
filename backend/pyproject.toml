@@ -1,5 +1,5 @@
 [project]
-name = "chainlit"
+name = "chainnext"
 dynamic = ["version"]
 keywords = [
     "LLM",
@@ -12,8 +12,10 @@ keywords = [
     "copilot",
     "langchain",
     "conversational ai",
+    "chainlit",
+    "chainnext",
 ]
-description = "Build Conversational AI."
+description = "Chainnext: a Chainlit-compatible framework for building conversational AI."
 authors = [
     { name = "Willy Douhard" },
     { name = "Dan Andre Constantini" }
@@ -64,10 +66,12 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://chainlit.io/"
-Documentation = "https://docs.chainlit.io/"
-Repository = "https://github.com/Chainlit/chainlit"
+Homepage = "https://github.com/Puyanfar/chainnext"
+Documentation = "https://github.com/Puyanfar/chainnext"
+Repository = "https://github.com/Puyanfar/chainnext"
 
+# Console script stays `chainlit` so existing apps and docs keep working.
+# The PyPI distribution name above is `chainnext`; the import package is `chainlit`.
 [project.scripts]
 chainlit = "chainlit.cli:cli"
 

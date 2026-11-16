@@ -1,4 +1,8 @@
-# Documentation for Chainlit developers, contributors, and AI coding assistants.
+# Documentation for Chainnext developers, contributors, and AI coding assistants.
+
+Chainnext is published on PyPI as **`chainnext`**. Application code still uses
+**`import chainlit`** and the **`chainlit`** CLI. See
+[Names: PyPI vs import vs CLI](../README.md#names-pypi-vs-import-vs-cli).
 
 See also:
 

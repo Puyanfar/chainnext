@@ -1,8 +1,21 @@
 # Changelog
 
-All notable changes to Chainlit will be documented in this file.
+All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+Entries through 2.12.0 describe upstream Chainlit. From this fork onward the
+PyPI package is **`chainnext`**; the Python import and CLI remain **`chainlit`**.
+
+## [Unreleased]
+
+### Changed
+
+- This repository is now the **chainnext** fork of the archived Chainlit project.
+- The PyPI distribution name is `chainnext` (`pip install chainnext`).
+- The Python import (`import chainlit`), CLI (`chainlit`), config directory
+  (`.chainlit/`), welcome file (`chainlit.md`), and `CHAINLIT_*` environment
+  variables are unchanged so existing Chainlit apps keep working.
 
 ## [2.12.0] - 2026-08-25
 
