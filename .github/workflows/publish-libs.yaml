@@ -1,5 +1,8 @@
 name: Publish libs
 
+# npm publishing is disabled. Chainnext ships JS assets inside the PyPI
+# package via publish.yaml. This workflow is kept from upstream so it can
+# be re-enabled later. See RELENG.md.
 on:
   workflow_dispatch:
     inputs:
@@ -8,8 +11,7 @@ on:
         required: false
         default: false
         type: boolean
-  release:
-    types: [published]
+  # Not triggered on GitHub releases while npm publishing is skipped.
 
 permissions: read-all
 
@@ -47,6 +49,10 @@ jobs:
       - name: Build react-client
         run: pnpm --filter @chainlit/react-client build
 
-      - name: Publish packages to npm
-        # --no-git-checks allows testing from non-main branches and publishing from release tags
-        run: pnpm publish --recursive --no-git-checks ${{ inputs.dry_run && '--dry-run' || '' }}
+      - name: Skip npm publish
+        run: |
+          echo "npm publishing is disabled for Chainnext."
+          echo "JS assets (frontend and copilot) ship inside the PyPI package via publish.yaml."
+          echo "See RELENG.md."
+          echo "To re-enable: restore the release trigger and run:"
+          echo "  pnpm publish --recursive --no-git-checks"

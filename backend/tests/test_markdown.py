@@ -210,12 +210,14 @@ class TestDefaultMarkdownStr:
 
     def test_default_markdown_str_contains_welcome(self):
         """Test that DEFAULT_MARKDOWN_STR contains welcome message."""
-        assert "Welcome to Chainlit" in DEFAULT_MARKDOWN_STR
+        assert "Welcome to Chainnext" in DEFAULT_MARKDOWN_STR
 
     def test_default_markdown_str_contains_links(self):
         """Test that DEFAULT_MARKDOWN_STR contains useful links."""
         assert "Documentation" in DEFAULT_MARKDOWN_STR
-        assert "Discord" in DEFAULT_MARKDOWN_STR
+        assert "pip install chainnext" in DEFAULT_MARKDOWN_STR
+        assert "import chainlit" in DEFAULT_MARKDOWN_STR
+        assert "https://github.com/Puyanfar/chainnext" in DEFAULT_MARKDOWN_STR
         assert "https://docs.chainlit.io" in DEFAULT_MARKDOWN_STR
 
     def test_default_markdown_str_is_valid_markdown(self):

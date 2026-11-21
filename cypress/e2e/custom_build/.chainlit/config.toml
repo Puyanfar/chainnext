@@ -127,7 +127,7 @@ custom_build = "./public/build"
 #     name = "Issues"
 #     display_name = "Report Issue"
 #     icon_url = "https://avatars.githubusercontent.com/u/128686189?s=200&v=4"
-#     url = "https://github.com/Chainlit/chainlit/issues"
+#     url = "https://github.com/Puyanfar/chainnext/issues"
 
 [meta]
 generated_by = "2.6.6"

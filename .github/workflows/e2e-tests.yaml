@@ -41,25 +41,158 @@ jobs:
     name: ${{ matrix.os }}-${{ matrix.containers }}
     env:
       BACKEND_DIR: ./backend
-      # Single path for actions/cache on Linux + Windows (default Cypress dirs differ by OS).
       CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cypress-cache
     steps:
       - uses: actions/checkout@v6
+      # Disable automatic Cypress binary installation on Windows.
+      - name: Configure Cypress installation (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Add-Content -Path $env:GITHUB_ENV -Value 'CYPRESS_INSTALL_BINARY=0'
+      # Use a new Windows cache key to invalidate the previous cache.
       - name: Cache Cypress binary
         uses: actions/cache@v5
         with:
           path: .cypress-cache
-          key: cypress-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: cypress-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}${{ runner.os == 'Windows' && '-manual-unzip-v1' || '' }}
+
       - uses: ./.github/actions/pnpm-node-install
         name: Install Node, pnpm and dependencies.
-      - name: Ensure Cypress binary is installed
+
+      # Keep the original Cypress installation procedure on Linux.
+      - name: Ensure Cypress binary is installed (Linux)
+        if: runner.os == 'Linux'
         run: pnpm exec cypress install
         shell: bash
+      # Download and extract Cypress manually on Windows.
+      - name: Download and extract Cypress binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          # Get the exact Cypress version resolved by the pnpm lockfile.
+          $versionOutput = & pnpm exec cypress version --component package 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to determine the Cypress package version: $versionOutput"
+          }
+
+          $versionText = $versionOutput -join "`n"
+          $versionMatches = [regex]::Matches(
+            $versionText,
+            '(?m)^\s*(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\s*$'
+          )
+
+          if ($versionMatches.Count -ne 1) {
+            throw "Could not extract exactly one Cypress version: $versionText"
+          }
+
+          $cypressVersion = $versionMatches[0].Groups[1].Value
+
+          $cacheRoot = $env:CYPRESS_CACHE_FOLDER
+          $versionDirectory = Join-Path $cacheRoot $cypressVersion
+          $binaryExecutable = Join-Path $versionDirectory 'Cypress\Cypress.exe'
+
+          New-Item -ItemType Directory -Path $cacheRoot -Force | Out-Null
+
+          # Reuse an existing valid cached installation.
+          if (Test-Path $binaryExecutable) {
+            & pnpm exec cypress verify
+            if ($LASTEXITCODE -eq 0) {
+              exit 0
+            }
+
+            Remove-Item -LiteralPath $versionDirectory -Recurse -Force
+          }
+          elseif (Test-Path $versionDirectory) {
+            Remove-Item -LiteralPath $versionDirectory -Recurse -Force
+          }
+
+          # Download the exact Windows x64 binary from the Cypress CDN.
+          $downloadUrl = 'https://download.cypress.io/desktop/{0}?platform=win32&arch=x64' -f $cypressVersion
+          $expectedUrlPattern = '/desktop/{0}\?platform=win32&arch=x64$' -f [regex]::Escape($cypressVersion)
+
+          if ($downloadUrl -notmatch $expectedUrlPattern) {
+            throw "Invalid Cypress download URL: $downloadUrl"
+          }
+
+          $zipPath = Join-Path $env:RUNNER_TEMP "cypress-$cypressVersion-win32-x64.zip"
+
+          & curl.exe `
+            --fail `
+            --location `
+            --retry 3 `
+            --retry-all-errors `
+            --connect-timeout 30 `
+            --max-time 1200 `
+            --output $zipPath `
+            $downloadUrl
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Cypress download failed. curl exit code: $LASTEXITCODE"
+          }
+
+          if (!(Test-Path $zipPath)) {
+            throw "Cypress download did not create the ZIP file."
+          }
+
+          if ((Get-Item $zipPath).Length -lt 10MB) {
+            throw "Downloaded Cypress ZIP is unexpectedly small."
+          }
+
+          # Locate 7-Zip. Fall back to the Windows tar utility if unavailable.
+          $sevenZipPath = (Get-Command 7z.exe -ErrorAction SilentlyContinue).Source
+
+          if ([string]::IsNullOrWhiteSpace($sevenZipPath)) {
+            $candidates = @(
+              (Join-Path $env:ProgramFiles '7-Zip\7z.exe'),
+              (Join-Path ${env:ProgramFiles(x86)} '7-Zip\7z.exe')
+            )
+
+            foreach ($candidate in $candidates) {
+              if (Test-Path $candidate) {
+                $sevenZipPath = $candidate
+                break
+              }
+            }
+          }
+
+          New-Item -ItemType Directory -Path $versionDirectory -Force | Out-Null
+
+          # Extract without using Cypress's Node.js unzip implementation.
+          if (![string]::IsNullOrWhiteSpace($sevenZipPath)) {
+            & $sevenZipPath x $zipPath "-o$versionDirectory" -y
+
+            if ($LASTEXITCODE -ne 0) {
+              throw "7-Zip extraction failed. Exit code: $LASTEXITCODE"
+            }
+          }
+          else {
+            & tar.exe -xf $zipPath -C $versionDirectory
+
+            if ($LASTEXITCODE -ne 0) {
+              throw "Windows tar extraction failed. Exit code: $LASTEXITCODE"
+            }
+          }
+
+          if (!(Test-Path $binaryExecutable)) {
+            throw "Cypress executable was not found: $binaryExecutable"
+          }
+
+          # Verify the manually extracted binary and initialize its cache state.
+          & pnpm exec cypress verify
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Cypress binary verification failed."
+          }
+
       - uses: ./.github/actions/uv-python-install
-        name: Install Python, uv and Python & pnpm (uv does it automatically) dependencies
+        name: Install Python, uv and Python & pnpm dependencies
         with:
           working-directory: ${{ env.BACKEND_DIR }}
           uv-args: --extra tests
+
       - name: Run tests
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
@@ -67,6 +200,7 @@ jobs:
           SPLIT_INDEX1: ${{ matrix.containers }}
         run: pnpm test:e2e
         shell: bash
+
       - name: Upload screenshots
         uses: actions/upload-artifact@v7
         if: always() && hashFiles('cypress/screenshots/**') != ''

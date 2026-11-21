@@ -1,6 +1,8 @@
-# Contribute to Chainlit
+# Contribute to Chainnext
 
-To contribute to Chainlit, you first need to set up the project on your local machine.
+To contribute to Chainnext, you first need to set up the project on your local machine.
+
+Chainnext is published on PyPI as **`chainnext`**. The Python import, CLI, and config paths remain **`chainlit`** (`import chainlit`, `chainlit run`, `.chainlit/config.toml`) so existing apps keep working. See [Names: PyPI vs import vs CLI](README.md#names-pypi-vs-import-vs-cli) in the README.
 
 ## Table of Contents
 
@@ -9,13 +11,13 @@ Generated using https://ecotrust-canada.github.io/markdown-toc/.
 I've copy/pasted the whole document there, and then formatted it with prettier.
 -->
 
-- [Contribute to Chainlit](#contribute-to-chainlit)
+- [Contribute to Chainnext](#contribute-to-chainnext)
   - [Table of Contents](#table-of-contents)
   - [Local setup](#local-setup)
     - [Requirements](#requirements)
     - [Set up the repo](#set-up-the-repo)
     - [Install dependencies](#install-dependencies)
-  - [Start the Chainlit server from source](#start-the-chainlit-server-from-source)
+  - [Start the Chainnext server from source](#start-the-chainnext-server-from-source)
   - [Start the UI from source](#start-the-ui-from-source)
   - [Lint \& Format](#lint--format)
   - [Run the tests](#run-the-tests)
@@ -39,7 +41,7 @@ I've copy/pasted the whole document there, and then formatted it with prettier.
 
 With this setup you can easily code in your fork and fetch updates from the main repository.
 
-1. Go to [https://github.com/Chainlit/chainlit/fork](https://github.com/Chainlit/chainlit/fork) to fork the chainlit code into your own repository.
+1. Go to [https://github.com/Puyanfar/chainnext/fork](https://github.com/Puyanfar/chainnext/fork) to fork the chainnext code into your own repository.
 2. Clone your fork locally
 
 ```sh
@@ -57,7 +59,7 @@ $ git remote -v
 4. Specify the new remote upstream repository that will be synced with the fork.
 
 ```sh
-git remote add upstream https://github.com/Chainlit/chainlit.git
+git remote add upstream https://github.com/Puyanfar/chainnext.git
 ```
 
 5. Verify the new upstream repository you've specified for your fork.
@@ -66,8 +68,8 @@ git remote add upstream https://github.com/Chainlit/chainlit.git
 $ git remote -v
 > origin    https://github.com/YOUR_USERNAME/YOUR_FORK.git (fetch)
 > origin    https://github.com/YOUR_USERNAME/YOUR_FORK.git (push)
-> upstream  https://github.com/Chainlit/chainlit.git (fetch)
-> upstream  https://github.com/Chainlit/chainlit.git (push)
+> upstream  https://github.com/Puyanfar/chainnext.git (fetch)
+> upstream  https://github.com/Puyanfar/chainnext.git (push)
 ```
 
 ### Install dependencies
@@ -78,7 +80,7 @@ The following command will install Python dependencies, Node (pnpm) dependencies
 uv sync --all-packages --all-extras --dev
 ```
 
-## Start the Chainlit server from source
+## Start the Chainnext server from source
 
 Start by running `backend/chainlit/sample/hello.py` as an example.
 
@@ -86,13 +88,13 @@ Start by running `backend/chainlit/sample/hello.py` as an example.
 uv run chainlit run backend/chainlit/sample/hello.py
 ```
 
-You should now be able to access the Chainlit app you just launched on `http://127.0.0.1:8000`.
+You should now be able to access the Chainnext app you just launched on `http://127.0.0.1:8000`. The command is still `chainlit run` because the CLI name is unchanged.
 
 If you've made it this far, you can now replace `chainlit/sample/hello.py` by your own target. 😎
 
 ## Start the UI from source
 
-First, you will have to start the server either [from source](#start-the-chainlit-server-from-source) or with `chainlit run...`. Since we are starting the UI from source, you can start the server with the `-h` (headless) option.
+First, you will have to start the server either [from source](#start-the-chainnext-server-from-source) or with `chainlit run...`. Since we are starting the UI from source, you can start the server with the `-h` (headless) option.
 
 Then, start the UI.
 

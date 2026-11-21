@@ -5,7 +5,7 @@ function openReadme() {
 describe('readme_language', () => {
   it('should show default markdown on open', () => {
     openReadme();
-    cy.contains('Welcome to Chainlit!');
+    cy.contains('Welcome to Chainnext!');
   });
 
   it('should show Portguese markdown on pt-BR language', () => {
@@ -17,7 +17,7 @@ describe('readme_language', () => {
       }
     });
     openReadme();
-    cy.contains('Bem-vindo ao Chainlit!');
+    cy.contains('Bem-vindo ao Chainnext!');
   });
 
   it('should fallback to default markdown on Klingon language', () => {
@@ -29,6 +29,6 @@ describe('readme_language', () => {
       }
     });
     openReadme();
-    cy.contains('Welcome to Chainlit!');
+    cy.contains('Welcome to Chainnext!');
   });
 });

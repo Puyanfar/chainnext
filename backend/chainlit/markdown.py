@@ -7,16 +7,18 @@ from chainlit.logger import logger
 from ._utils import is_path_inside
 
 # Default chainlit.md file created if none exists
-DEFAULT_MARKDOWN_STR = """# Welcome to Chainlit! 🚀🤖
+DEFAULT_MARKDOWN_STR = """# Welcome to Chainnext! 🚀🤖
 
-Hi there, Developer! 👋 We're excited to have you on board. Chainlit is a powerful tool designed to help you prototype, debug and share applications built on top of LLMs.
+Hi there, Developer! 👋 We're excited to have you on board. Chainnext is a Chainlit-compatible framework for prototyping, debugging, and sharing applications built on top of LLMs.
+
+Install the PyPI package with `pip install chainnext`. In your code, keep using `import chainlit` and the `chainlit` CLI — those names are unchanged for compatibility.
 
 ## Useful Links 🔗
 
-- **Documentation:** Get started with our comprehensive [Chainlit Documentation](https://docs.chainlit.io) 📚
-- **Discord Community:** Join our friendly [Chainlit Discord](https://discord.gg/k73SQ3FyUh) to ask questions, share your projects, and connect with other developers! 💬
+- **Repository:** [chainnext on GitHub](https://github.com/Puyanfar/chainnext) 📦
+- **Documentation:** Upstream Chainlit API docs still apply: [Chainlit Documentation](https://docs.chainlit.io) 📚
 
-We can't wait to see what you create with Chainlit! Happy coding! 💻😊
+We can't wait to see what you create with Chainnext! Happy coding! 💻😊
 
 ## Welcome screen
 

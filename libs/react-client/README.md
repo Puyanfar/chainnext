@@ -1,6 +1,8 @@
 ## Overview
 
-The `@chainlit/react-client` package provides a set of React hooks as well as an API client to connect to your [Chainlit](https://github.com/Chainlit/chainlit) application from any React application. The package includes hooks for managing chat sessions, messages, data, and interactions.
+The `@chainlit/react-client` package provides a set of React hooks as well as an API client to connect to your [Chainnext](https://github.com/Puyanfar/chainnext) (Chainlit-compatible) application from any React application. The package includes hooks for managing chat sessions, messages, data, and interactions.
+
+The Python backend is installed from PyPI as **`chainnext`**. Apps still import **`chainlit`** and run the **`chainlit`** CLI. This npm package name remains `@chainlit/react-client` for compatibility.
 
 ## Installation
 

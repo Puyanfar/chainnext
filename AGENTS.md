@@ -12,7 +12,22 @@ When available, **ALWAYS** prefer MCP servers over manual alternatives. Use **Co
 
 ## Overview
 
-Chainlit is a Python framework for building production-ready conversational AI applications. It consists of a Python/FastAPI backend and a React frontend, with a pnpm monorepo for the JS packages.
+Chainnext is a fork of Chainlit: a Python framework for building production-ready conversational AI applications. It consists of a Python/FastAPI backend and a React frontend, with a pnpm monorepo for the JS packages.
+
+## Names: PyPI vs import vs CLI
+
+The GitHub repository and PyPI package are **`chainnext`**. Runtime names stay **`chainlit`** so existing apps keep working.
+
+| What                     | Name                                      | Notes                                                                              |
+| ------------------------ | ----------------------------------------- | ---------------------------------------------------------------------------------- |
+| GitHub repository        | `chainnext`                               | `https://github.com/Puyanfar/chainnext`                                            |
+| PyPI package             | `chainnext`                               | `pip install chainnext` — do not install `chainlit` for this fork                  |
+| Python import            | `chainlit`                                | `import chainlit as cl` / `from chainlit import *`. There is no `chainnext` module |
+| CLI                      | `chainlit`                                | `chainlit run`, `chainlit hello`. Dev: `uv run chainlit run …`                     |
+| Python package directory | `backend/chainlit/`                       | Hatch still packages the `chainlit` import                                         |
+| Config / env / files     | `.chainlit/`, `chainlit.md`, `CHAINLIT_*` | Unchanged for compatibility                                                        |
+
+When documenting or writing examples, use `pip install chainnext` and `import chainlit` together.
 
 ## Prerequisites
 
@@ -115,7 +130,7 @@ Examples:
 ### Monorepo structure
 
 ```
-backend/          # Python package (published to PyPI as "chainlit")
+backend/          # Python package (published to PyPI as "chainnext"; import name is still "chainlit")
 frontend/         # React app (built output served by backend)
 libs/
   react-client/   # @chainlit/react-client — published npm package with React hooks
@@ -180,7 +195,7 @@ State is managed via Recoil; consuming apps must wrap the tree in `<RecoilRoot>`
 
 ### App configuration
 
-Apps configure Chainlit via `.chainlit/config.toml` (created automatically on first run). Key sections: `[project]` (auth, session timeouts, CORS), `[UI]` (name, theme, layout).
+Apps configure Chainnext via `.chainlit/config.toml` (created automatically on first run; the directory name is unchanged). Key sections: `[project]` (auth, session timeouts, CORS), `[UI]` (name, theme, layout).
 
 ---
 
