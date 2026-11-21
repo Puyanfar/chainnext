@@ -6,7 +6,7 @@ on:
       use_testpypi:
         description: 'Publish to TestPyPI instead of PyPI'
         required: false
-        default: false
+        default: true
         type: boolean
   release:
     types: [published]
@@ -19,11 +19,15 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - name: Validate publishing branch and destination package index
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          USE_TESTPYPI: ${{ inputs.use_testpypi }}
         run: |
-          if [[ "${{ github.ref_name }}" != "main" && "${{ github.event_name }}" != "release" ]]; then
-            if [[ "${{ inputs.use_testpypi }}" != "true" ]]; then
-              echo "❌ Error: Only build from main branch or release tag can be published to PyPI."
-              echo "Please check 'Publish to TestPyPI instead of PyPI' when running from branch: ${{ github.ref_name }}"
+          if [[ "$REF_NAME" != "main" && "$EVENT_NAME" != "release" ]]; then
+            if [[ "$USE_TESTPYPI" != "true" ]]; then
+              echo "❌ Error: Only main or a published GitHub Release can publish to PyPI."
+              echo "Select TestPyPI when running manually from branch: $REF_NAME"
               exit 1
             fi
           fi
@@ -32,49 +36,93 @@ jobs:
     needs: [validate]
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
-  build-n-publish:
-    name: Upload release to PyPI/TestPyPI
+
+  build:
+    name: Build Python distributions
     runs-on: ubuntu-latest
-    needs: [ci]
-    env:
-      name: ${{ inputs.use_testpypi && 'testpypi' || 'pypi' }}
-      url: ${{ inputs.use_testpypi && 'https://test.pypi.org/project/chainnext' || 'https://pypi.org/project/chainnext' }}
-      BACKEND_DIR: ./backend
+    needs: [validate, ci]
     permissions:
       contents: read
-      id-token: write # IMPORTANT: this permission is mandatory for trusted publishing
+
+    env:
+      BACKEND_DIR: ./backend
+
     steps:
       - uses: actions/checkout@v6
+
       - uses: ./.github/actions/pnpm-node-install
         name: Install Node, pnpm and dependencies.
+
       - uses: ./.github/actions/uv-python-install
         name: Install Python, uv and Python dependencies
         with:
           working-directory: ${{ env.BACKEND_DIR }}
 
-      - name: Build Python distribution
-        run: uv build
-        working-directory: ${{ env.BACKEND_DIR }}
+      - name: Build Python distributions
+        run: uv build --out-dir "$GITHUB_WORKSPACE/dist"
+        working-directory: backend
 
-      - name: Check frontend and copilot folder included
+      - name: Check frontend and Copilot assets
         run: |
-          pip install wheel
-          python -m wheel unpack dist/chainnext-*.whl -d unpacked
-          ls unpacked/chainnext-*/chainlit/frontend/dist
-          ls unpacked/chainnext-*/chainlit/copilot/dist
+          uvx wheel unpack dist/chainnext-*.whl -d unpacked
+
+          PACKAGE_DIR=$(find unpacked -mindepth 1 -maxdepth 1 \
+            -type d -name 'chainnext-*' -print -quit)
+
+          if [[ -z "$PACKAGE_DIR" ]]; then
+            echo "Could not find the unpacked Chainnext distribution."
+            exit 1
+          fi
+
+          test -d "$PACKAGE_DIR/chainlit/frontend/dist" || {
+            echo "Frontend assets are missing from the wheel."
+            exit 1
+          }
+
+          test -d "$PACKAGE_DIR/chainlit/copilot/dist" || {
+            echo "Copilot assets are missing from the wheel."
+            exit 1
+          }
+
+          echo "Frontend and Copilot assets are included."
+
+      - name: Upload Python distributions
+        uses: actions/upload-artifact@v7
+        with:
+          name: python-package-distributions
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI or TestPyPI
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    environment:
+      name: ${{ inputs.use_testpypi && 'testpypi' || 'pypi' }}
+      url: ${{ inputs.use_testpypi && 'https://test.pypi.org/project/chainnext/' || 'https://pypi.org/project/chainnext/' }}
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download Python distributions
+        uses: actions/download-artifact@v8
+        with:
+          name: python-package-distributions
+          path: dist/
 
       - name: Publish package distributions to TestPyPI
         if: inputs.use_testpypi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist
+          packages-dir: dist/
           repository-url: https://test.pypi.org/legacy/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           verbose: true
 
       - name: Publish package distributions to PyPI
         if: ${{ !inputs.use_testpypi }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages-dir: dist/
+          verbose: true
