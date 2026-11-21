@@ -47,13 +47,39 @@ jobs:
       - uses: actions/checkout@v6
       - name: Cache Cypress binary
         uses: actions/cache@v5
+        if: always()
         with:
           path: .cypress-cache
           key: cypress-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - uses: ./.github/actions/pnpm-node-install
         name: Install Node, pnpm and dependencies.
+      # Cypress v14's install/verify consults the OS-default location (e.g.
+      # %LOCALAPPDATA%\Cypress\Cache on Windows) rather than CYPRESS_CACHE_FOLDER,
+      # so `cypress install` can short-circuit as "already installed" while the
+      # path `cypress run` actually looks up (CYPRESS_CACHE_FOLDER) stays empty.
+      # We verify the exact path cypress run will use and force a fresh install
+      # only when it is missing. Keep the binary layout in sync with the
+      # `cypress` version in package.json (read dynamically below).
       - name: Ensure Cypress binary is installed
-        run: pnpm exec cypress install
+        run: |
+          set -e
+          CY_VER=$(node -p "require('cypress/package.json').version")
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            BIN_PATH=".cypress-cache/${CY_VER}/Cypress/Cypress.exe"
+          else
+            BIN_PATH=".cypress-cache/${CY_VER}/Cypress/Cypress"
+          fi
+          if [ -f "$BIN_PATH" ]; then
+            echo "✅ Cypress binary present at $BIN_PATH (restored from cache)"
+          else
+            echo "⬇️  Binary missing — forcing a fresh install into CYPRESS_CACHE_FOLDER"
+            rm -rf .cypress-cache
+            CYPRESS_INSTALL_BINARY=1 pnpm exec cypress install
+            test -f "$BIN_PATH" || {
+              echo "❌ Cypress binary still missing after forced install at $BIN_PATH"
+              exit 1
+            }
+          fi
         shell: bash
       - uses: ./.github/actions/uv-python-install
         name: Install Python, uv and Python & pnpm (uv does it automatically) dependencies
