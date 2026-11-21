@@ -60,6 +60,13 @@ jobs:
       # We verify the exact path cypress run will use and force a fresh install
       # only when it is missing. Keep the binary layout in sync with the
       # `cypress` version in package.json (read dynamically below).
+      #
+      # NOTE: CYPRESS_INSTALL_BINARY is the *version* to install in Cypress 14,
+      # NOT a force flag. Setting it to "1" made Cypress try to download
+      # https://download.cypress.io/desktop/1 (404). It must stay UNSET so the
+      # CLI installs the version matching the npm package. With CYPRESS_CACHE_FOLDER
+      # set (job env) and the folder clean, `cypress install` downloads into
+      # .cypress-cache (verified locally on Linux 14.5.3).
       - name: Ensure Cypress binary is installed
         run: |
           set -e
@@ -74,7 +81,8 @@ jobs:
           else
             echo "⬇️  Binary missing — forcing a fresh install into CYPRESS_CACHE_FOLDER"
             rm -rf .cypress-cache
-            CYPRESS_INSTALL_BINARY=1 pnpm exec cypress install
+            unset CYPRESS_INSTALL_BINARY
+            pnpm exec cypress install
             test -f "$BIN_PATH" || {
               echo "❌ Cypress binary still missing after forced install at $BIN_PATH"
               exit 1
