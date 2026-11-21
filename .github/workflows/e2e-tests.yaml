@@ -41,29 +41,18 @@ jobs:
     name: ${{ matrix.os }}-${{ matrix.containers }}
     env:
       BACKEND_DIR: ./backend
-      # Use a consistent cache location across operating systems.
       CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cypress-cache
     steps:
       - uses: actions/checkout@v6
-      # Disable Cypress's automatic binary installation on Windows.
-      # This must happen before installing pnpm dependencies.
+      # Disable automatic Cypress binary installation on Windows.
       - name: Configure Cypress installation (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           Add-Content -Path $env:GITHUB_ENV -Value 'CYPRESS_INSTALL_BINARY=0'
-          Add-Content -Path $env:GITHUB_ENV -Value 'CYPRESS_VERIFY_TIMEOUT=120000'
-
-          Write-Host "Cypress automatic binary installation disabled."
-          Write-Host "Cypress verification timeout set to 120 seconds."
-          Write-Host "CYPRESS_CACHE_FOLDER: $env:CYPRESS_CACHE_FOLDER"
-
-      # Keep the original Linux cache key.
-      # Use a new Windows cache key to invalidate the previous
-      # potentially corrupted Cypress installation.
-      - name: Restore Cypress binary cache
-        id: cypress-cache
-        uses: actions/cache/restore@v5
+      # Use a new Windows cache key to invalidate the previous cache.
+      - name: Cache Cypress binary
+        uses: actions/cache@v5
         with:
           path: .cypress-cache
           key: cypress-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}${{ runner.os == 'Windows' && '-manual-unzip-v1' || '' }}
@@ -71,66 +60,22 @@ jobs:
       - uses: ./.github/actions/pnpm-node-install
         name: Install Node, pnpm and dependencies.
 
-      # Linux retains its original Cypress installation procedure.
+      # Keep the original Cypress installation procedure on Linux.
       - name: Ensure Cypress binary is installed (Linux)
         if: runner.os == 'Linux'
+        run: pnpm exec cypress install
         shell: bash
-        env:
-          DEBUG: cypress:cli*
-        run: |
-          echo "========== Cypress installation diagnostics =========="
-
-          echo "Node version:"
-          node --version
-
-          echo "pnpm version:"
-          pnpm --version
-
-          echo "Cypress package and binary versions:"
-          pnpm exec cypress version || true
-
-          echo "Installing Cypress binary..."
-          pnpm exec cypress install
-
-          echo "Verifying Cypress installation..."
-          pnpm exec cypress verify
-
-          echo "Final Cypress version:"
-          pnpm exec cypress version
-
-      # Windows: download and extract Cypress without Node.js unzip.
+      # Download and extract Cypress manually on Windows.
       - name: Download and extract Cypress binary (Windows)
         if: runner.os == 'Windows'
-        id: cypress-install
         shell: pwsh
-        env:
-          DEBUG: cypress:cli*
         run: |
           $ErrorActionPreference = 'Stop'
 
-          Write-Host "========== Cypress installation diagnostics =========="
-          Write-Host "Operating system: $env:RUNNER_OS"
-          Write-Host "Architecture: $env:PROCESSOR_ARCHITECTURE"
-
-          Write-Host "Node version:"
-          node --version
-
-          Write-Host "pnpm version:"
-          pnpm --version
-
-          Write-Host "Cypress cache directory: $env:CYPRESS_CACHE_FOLDER"
-
-          # Dependencies were installed from the frozen pnpm lockfile.
-          # Obtain the exact installed package version resolved by that lockfile.
-          Write-Host "========== Determine Cypress package version =========="
-
+          # Get the exact Cypress version resolved by the pnpm lockfile.
           $versionOutput = & pnpm exec cypress version --component package 2>&1
-          $versionExitCode = $LASTEXITCODE
-
-          $versionOutput | ForEach-Object { Write-Host "$_" }
-
-          if ($versionExitCode -ne 0) {
-            throw "Failed to determine the Cypress package version. Exit code: $versionExitCode"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to determine the Cypress package version: $versionOutput"
           }
 
           $versionText = $versionOutput -join "`n"
@@ -140,79 +85,39 @@ jobs:
           )
 
           if ($versionMatches.Count -ne 1) {
-            throw "Could not extract exactly one Cypress version. Output: $versionText"
+            throw "Could not extract exactly one Cypress version: $versionText"
           }
 
           $cypressVersion = $versionMatches[0].Groups[1].Value
-
-          Write-Host "Resolved Cypress package version: $cypressVersion"
-
-          # Expected cache directory structure:
-          # .cypress-cache/
-          #   <version>/
-          #     Cypress/
-          #       Cypress.exe
 
           $cacheRoot = $env:CYPRESS_CACHE_FOLDER
           $versionDirectory = Join-Path $cacheRoot $cypressVersion
           $binaryExecutable = Join-Path $versionDirectory 'Cypress\Cypress.exe'
 
-          Write-Host "Cypress version directory: $versionDirectory"
-          Write-Host "Expected executable: $binaryExecutable"
-
           New-Item -ItemType Directory -Path $cacheRoot -Force | Out-Null
 
-          # First inspect an existing cached installation.
+          # Reuse an existing valid cached installation.
           if (Test-Path $binaryExecutable) {
-            Write-Host "Found a cached Cypress executable. Verifying..."
-
-            $verifyOutput = & pnpm exec cypress verify 2>&1
-            $verifyExitCode = $LASTEXITCODE
-
-            $verifyOutput | ForEach-Object { Write-Host "$_" }
-
-            if ($verifyExitCode -eq 0) {
-              Write-Host "Cached Cypress installation is valid."
-
-              pnpm exec cypress version
-              if ($LASTEXITCODE -ne 0) {
-                throw "Failed to retrieve Cypress version information."
-              }
-
+            & pnpm exec cypress verify
+            if ($LASTEXITCODE -eq 0) {
               exit 0
             }
-
-            Write-Warning "Cached Cypress installation is invalid."
-            Write-Host "Removing the existing version directory."
 
             Remove-Item -LiteralPath $versionDirectory -Recurse -Force
           }
           elseif (Test-Path $versionDirectory) {
-            Write-Warning "Found an incomplete Cypress cache directory."
             Remove-Item -LiteralPath $versionDirectory -Recurse -Force
           }
-          else {
-            Write-Host "No cached Cypress installation found."
-          }
 
-          # Download the exact Windows x64 binary from the official Cypress CDN.
-          # Use -f formatting to prevent PowerShell from interpreting
-          # the query-string suffix as part of the variable name.
+          # Download the exact Windows x64 binary from the Cypress CDN.
           $downloadUrl = 'https://download.cypress.io/desktop/{0}?platform=win32&arch=x64' -f $cypressVersion
-          $zipPath = Join-Path $env:RUNNER_TEMP "cypress-$cypressVersion-win32-x64.zip"
-
-          Write-Host "========== Cypress binary download =========="
-          Write-Host "Download URL: $downloadUrl"
-          Write-Host "Destination: $zipPath"
-
-          # Validate the generated URL before starting the download.
           $expectedUrlPattern = '/desktop/{0}\?platform=win32&arch=x64$' -f [regex]::Escape($cypressVersion)
 
           if ($downloadUrl -notmatch $expectedUrlPattern) {
-            throw "Generated Cypress download URL is invalid: $downloadUrl"
+            throw "Invalid Cypress download URL: $downloadUrl"
           }
 
-          $downloadStarted = Get-Date
+          $zipPath = Join-Path $env:RUNNER_TEMP "cypress-$cypressVersion-win32-x64.zip"
 
           & curl.exe `
             --fail `
@@ -224,37 +129,20 @@ jobs:
             --output $zipPath `
             $downloadUrl
 
-          $downloadExitCode = $LASTEXITCODE
-
-          if ($downloadExitCode -ne 0) {
-            throw "Cypress download failed. curl exit code: $downloadExitCode"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Cypress download failed. curl exit code: $LASTEXITCODE"
           }
 
           if (!(Test-Path $zipPath)) {
-            throw "Cypress download completed without creating the ZIP file."
+            throw "Cypress download did not create the ZIP file."
           }
 
-          $zipInfo = Get-Item $zipPath
-          $zipHash = Get-FileHash -Path $zipPath -Algorithm SHA256
-
-          Write-Host "Downloaded file size: $([math]::Round($zipInfo.Length / 1MB, 2)) MB"
-          Write-Host "Downloaded file SHA256: $($zipHash.Hash)"
-          Write-Host "Download duration: $((Get-Date) - $downloadStarted)"
-
-          if ($zipInfo.Length -lt 10MB) {
+          if ((Get-Item $zipPath).Length -lt 10MB) {
             throw "Downloaded Cypress ZIP is unexpectedly small."
           }
 
-          # Locate 7-Zip using its actual executable path.
-          Write-Host "========== Locate extraction utility =========="
-
-          $sevenZipPath = $null
-
-          $sevenZipCommand = Get-Command 7z.exe -ErrorAction SilentlyContinue
-
-          if ($null -ne $sevenZipCommand) {
-            $sevenZipPath = $sevenZipCommand.Source
-          }
+          # Locate 7-Zip. Fall back to the Windows tar utility if unavailable.
+          $sevenZipPath = (Get-Command 7z.exe -ErrorAction SilentlyContinue).Source
 
           if ([string]::IsNullOrWhiteSpace($sevenZipPath)) {
             $candidates = @(
@@ -270,131 +158,41 @@ jobs:
             }
           }
 
-          if (![string]::IsNullOrWhiteSpace($sevenZipPath)) {
-            Write-Host "Using 7-Zip: $sevenZipPath"
-          }
-          else {
-            Write-Warning "7-Zip was not found. Will use Windows tar.exe."
-          }
-
-          # Extract the downloaded archive.
-          Write-Host "========== Cypress binary extraction =========="
-
           New-Item -ItemType Directory -Path $versionDirectory -Force | Out-Null
 
-          $extractStarted = Get-Date
-
+          # Extract without using Cypress's Node.js unzip implementation.
           if (![string]::IsNullOrWhiteSpace($sevenZipPath)) {
-            Write-Host "Testing archive integrity..."
+            & $sevenZipPath x $zipPath "-o$versionDirectory" -y
 
-            & $sevenZipPath t $zipPath -bb1
-
-            $testExitCode = $LASTEXITCODE
-
-            if ($testExitCode -ne 0) {
-              throw "7-Zip archive integrity test failed. Exit code: $testExitCode"
-            }
-
-            Write-Host "Extracting Cypress with 7-Zip..."
-
-            & $sevenZipPath x $zipPath "-o$versionDirectory" -y -bb1 -bsp1
-
-            $extractExitCode = $LASTEXITCODE
-
-            if ($extractExitCode -ne 0) {
-              throw "7-Zip extraction failed. Exit code: $extractExitCode"
+            if ($LASTEXITCODE -ne 0) {
+              throw "7-Zip extraction failed. Exit code: $LASTEXITCODE"
             }
           }
           else {
-            $tarCommand = Get-Command tar.exe -ErrorAction Stop
+            & tar.exe -xf $zipPath -C $versionDirectory
 
-            Write-Host "Extracting Cypress with: $($tarCommand.Source)"
-
-            & $tarCommand.Source -xf $zipPath -C $versionDirectory
-
-            $extractExitCode = $LASTEXITCODE
-
-            if ($extractExitCode -ne 0) {
-              throw "tar.exe extraction failed. Exit code: $extractExitCode"
+            if ($LASTEXITCODE -ne 0) {
+              throw "Windows tar extraction failed. Exit code: $LASTEXITCODE"
             }
           }
 
-          Write-Host "Extraction duration: $((Get-Date) - $extractStarted)"
-
-          # Validate the expected Cypress directory structure.
           if (!(Test-Path $binaryExecutable)) {
-            Write-Host "Expected Cypress executable was not found."
-            Write-Host "Extracted directory contents:"
-
-            Get-ChildItem -LiteralPath $versionDirectory -Force |
-              Format-Table Name, Length, Mode -AutoSize
-
-            Write-Host "Cypress.exe candidates:"
-
-            Get-ChildItem `
-              -LiteralPath $versionDirectory `
-              -Filter Cypress.exe `
-              -Recurse `
-              -File `
-              -ErrorAction SilentlyContinue |
-              Select-Object -First 20 -ExpandProperty FullName
-
-            throw "Cypress.exe was not found at the expected cache location."
+            throw "Cypress executable was not found: $binaryExecutable"
           }
 
-          $extractedFiles = @(
-            Get-ChildItem -LiteralPath $versionDirectory -Recurse -File
-          )
-
-          $totalBytes = (
-            $extractedFiles |
-            Measure-Object -Property Length -Sum
-          ).Sum
-
-          Write-Host "Extracted file count: $($extractedFiles.Count)"
-          Write-Host "Extracted size: $([math]::Round($totalBytes / 1MB, 2)) MB"
-          Write-Host "Cypress executable: $binaryExecutable"
-
-          # Cypress verifies the unpacked binary and writes its cache state.
-          Write-Host "========== Cypress binary verification =========="
-
-          $verifyOutput = & pnpm exec cypress verify 2>&1
-          $verifyExitCode = $LASTEXITCODE
-
-          $verifyOutput | ForEach-Object { Write-Host "$_" }
-
-          if ($verifyExitCode -ne 0) {
-            throw "Cypress binary verification failed. Exit code: $verifyExitCode"
-          }
-
-          Write-Host "Cypress verification passed."
-
-          Write-Host "========== Final Cypress version information =========="
-
-          pnpm exec cypress version
+          # Verify the manually extracted binary and initialize its cache state.
+          & pnpm exec cypress verify
 
           if ($LASTEXITCODE -ne 0) {
-            throw "Failed to retrieve final Cypress version information."
+            throw "Cypress binary verification failed."
           }
-
-          pnpm exec cypress cache list --size
-
-          Write-Host "Cypress installation completed successfully."
-          Write-Host "Downloaded archive retained at: $zipPath"
-
-      # Save the cache after successful installation, before running tests.
-      - name: Save Cypress binary cache
-        if: success() && steps.cypress-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
-        with:
-          path: .cypress-cache
-          key: ${{ steps.cypress-cache.outputs.cache-primary-key }}
 
       - uses: ./.github/actions/uv-python-install
         name: Install Python, uv and Python & pnpm dependencies
         with:
           working-directory: ${{ env.BACKEND_DIR }}
           uv-args: --extra tests
+
       - name: Run tests
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
@@ -402,80 +200,6 @@ jobs:
           SPLIT_INDEX1: ${{ matrix.containers }}
         run: pnpm test:e2e
         shell: bash
-      # These diagnostics run after the test step if any preceding step failed.
-      - name: Cypress diagnostics
-        if: failure()
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-
-          echo "========== Cypress failure diagnostics =========="
-
-          echo "Operating system: $RUNNER_OS"
-          echo "Architecture: $RUNNER_ARCH"
-
-          echo "Node version:"
-          node --version
-
-          echo "pnpm version:"
-          pnpm --version
-
-          echo "Cypress package and binary versions:"
-          pnpm exec cypress version
-
-          echo "Cypress system information:"
-          pnpm exec cypress info
-
-          echo "Cypress cache path:"
-          pnpm exec cypress cache path
-
-          echo "Cypress cached versions:"
-          pnpm exec cypress cache list --size
-
-          echo "Cypress cache environment variable:"
-          echo "$CYPRESS_CACHE_FOLDER"
-
-          echo "========== End Cypress diagnostics =========="
-
-      - name: Inspect Cypress cache files (Windows)
-        if: failure() && runner.os == 'Windows'
-        continue-on-error: true
-        shell: pwsh
-        run: |
-          Write-Host "========== Windows Cypress cache inspection =========="
-
-          $cacheRoot = $env:CYPRESS_CACHE_FOLDER
-
-          Write-Host "Cache root: $cacheRoot"
-
-          if (Test-Path $cacheRoot) {
-            Get-ChildItem -LiteralPath $cacheRoot -Force |
-              Format-Table Name, Mode, LastWriteTimeUtc -AutoSize
-
-            Write-Host "First 100 extracted files:"
-
-            Get-ChildItem -LiteralPath $cacheRoot -Recurse -File |
-              Select-Object -First 100 FullName, Length, LastWriteTimeUtc |
-              Format-Table -AutoSize
-
-            Write-Host "Cypress binary state files:"
-
-            Get-ChildItem `
-              -LiteralPath $cacheRoot `
-              -Filter binary_state.json `
-              -Recurse `
-              -File |
-              ForEach-Object {
-                Write-Host "File: $($_.FullName)"
-                Get-Content -LiteralPath $_.FullName -Raw
-              }
-          }
-          else {
-            Write-Warning "Cypress cache directory does not exist."
-          }
-
-          Write-Host "========== End Windows Cypress cache inspection =========="
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v7
