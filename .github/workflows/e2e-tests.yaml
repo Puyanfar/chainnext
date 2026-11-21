@@ -196,12 +196,21 @@ jobs:
           }
 
           # Download the exact Windows x64 binary from the official Cypress CDN.
-          $downloadUrl = "https://download.cypress.io/desktop/$cypressVersion?platform=win32&arch=x64"
+          # Use -f formatting to prevent PowerShell from interpreting
+          # the query-string suffix as part of the variable name.
+          $downloadUrl = 'https://download.cypress.io/desktop/{0}?platform=win32&arch=x64' -f $cypressVersion
           $zipPath = Join-Path $env:RUNNER_TEMP "cypress-$cypressVersion-win32-x64.zip"
 
           Write-Host "========== Cypress binary download =========="
           Write-Host "Download URL: $downloadUrl"
           Write-Host "Destination: $zipPath"
+
+          # Validate the generated URL before starting the download.
+          $expectedUrlPattern = '/desktop/{0}\?platform=win32&arch=x64$' -f [regex]::Escape($cypressVersion)
+
+          if ($downloadUrl -notmatch $expectedUrlPattern) {
+            throw "Generated Cypress download URL is invalid: $downloadUrl"
+          }
 
           $downloadStarted = Get-Date
 
@@ -395,8 +404,7 @@ jobs:
           DEBUG: cypress:*
         run: pnpm test:e2e
         shell: bash
-      # These diagnostics must be after Run tests.
-      # They execute when any preceding step fails.
+      # These diagnostics run after the test step if any preceding step failed.
       - name: Cypress diagnostics
         if: failure()
         continue-on-error: true
