@@ -400,8 +400,6 @@ jobs:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           SPLIT: ${{ inputs.e2e_parallel_shards }}
           SPLIT_INDEX1: ${{ matrix.containers }}
-          # Detailed Cypress CLI and driver logs.
-          DEBUG: cypress:*
         run: pnpm test:e2e
         shell: bash
       # These diagnostics run after the test step if any preceding step failed.
