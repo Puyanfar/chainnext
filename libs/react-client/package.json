@@ -35,7 +35,7 @@
     "@types/lodash": "^4.17.27",
     "@vitejs/plugin-react": "^4.7.0",
     "@vitejs/plugin-react-swc": "^3.11.0",
-    "jsdom": "^22.1.0",
+    "jsdom": "^27.4.0",
     "tslib": "^2.9.1",
     "tsup": "^9.0.0",
     "typescript": "^5.9.3",
