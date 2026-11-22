@@ -21,7 +21,7 @@ Always reference these instructions first and fallback to search or bash command
    export PATH="$HOME/.local/bin:$PATH"
 
    # Install pnpm (if not available)
-   npm install -g pnpm
+   npm install -g npm@12.2.3 pnpm@12.22.0
 
    # Install Python dependencies - takes ~2 minutes, NEVER CANCEL
    cd backend
@@ -193,6 +193,6 @@ uv run chainlit run app.py -w
 ## Requirements
 
 - **Python**: >= 3.10
-- **Node.js**: >= 20 (24+ recommended)
+- **Node.js**: >= 26.13.1
 - **uv**: 2.1.3 (install via pipx)
-- **pnpm**: Latest (install via npm)
+- **pnpm**: 12.22.0 (install via npm)

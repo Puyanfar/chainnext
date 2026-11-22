@@ -1,4 +1,4 @@
-import { atom } from 'recoil';
+import { RecoilState, atom } from 'recoil';
 
 import { ICommand } from 'client-types/*';
 
@@ -15,12 +15,16 @@ export interface IAttachment {
   file?: File;
 }
 
-export const attachmentsState = atom<IAttachment[]>({
-  key: 'Attachments',
-  default: []
-});
+export const attachmentsState: RecoilState<IAttachment[]> = atom<IAttachment[]>(
+  {
+    key: 'Attachments',
+    default: []
+  }
+);
 
-export const persistentCommandState = atom<ICommand | undefined>({
+export const persistentCommandState: RecoilState<ICommand | undefined> = atom<
+  ICommand | undefined
+>({
   key: 'PersistentCommand',
   default: undefined
 });

@@ -1,4 +1,3 @@
-import { platform } from 'os';
 import { sep } from 'path';
 
 import { setupWebSocketListener, submitMessage } from '../../support/testUtils';
@@ -137,12 +136,9 @@ const cleanupThreadHistory = () => {
   pathItems[pathItems.length - 1] = 'thread_history.pickle';
   const threadHistoryFile = pathItems.join(sep);
 
-  // Clean up thread history file
-  const command =
-    platform() === 'win32'
-      ? `del /f "${threadHistoryFile}"`
-      : `rm -f "${threadHistoryFile}"`;
-  cy.exec(command, { failOnNonZeroExit: false });
+  // Clean up thread history file. The task uses Node.js filesystem APIs,
+  // so the operation works consistently on Windows and Unix-like systems.
+  cy.task('deleteThreadHistory', threadHistoryFile);
 };
 
 describe.skip('Data Layer', () => {
