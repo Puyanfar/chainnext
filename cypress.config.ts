@@ -1,6 +1,7 @@
 import { defineConfig } from 'cypress';
 import cypressSplit from 'cypress-split';
 import fkill from 'fkill';
+import { unlink } from 'node:fs/promises';
 
 import { runChainlit } from './cypress/support/run';
 
@@ -25,6 +26,7 @@ async function killChainlit() {
 });
 
 export default defineConfig({
+  defaultBrowser: 'chrome',
   projectId: 'ij1tyk',
 
   retries: 3,
@@ -58,6 +60,21 @@ export default defineConfig({
         log(message) {
           console.log(message);
           return null;
+        },
+        async deleteThreadHistory(filePath: string) {
+          try {
+            await unlink(filePath);
+            return { exitCode: 0, stdout: '', stderr: '' };
+          } catch (error) {
+            // Match cy.exec(..., { failOnNonZeroExit: false }): report file
+            // system errors without failing the Cypress test.
+            const fileError = error as NodeJS.ErrnoException;
+            return {
+              exitCode: fileError.code === 'ENOENT' ? 0 : 1,
+              stdout: '',
+              stderr: fileError.code === 'ENOENT' ? '' : fileError.message
+            };
+          }
         },
         restartChainlit(spec: Cypress.Spec) {
           return new Promise((resolve) => {

@@ -32,9 +32,9 @@ When documenting or writing examples, use `pip install chainnext` and `import ch
 ## Prerequisites
 
 - Python: **3.13** (3.10+ is the framework's minimum, but development targets 3.13)
-- Node.js: **24+**
+- Node.js: **26.13.1+** (see `.nvmrc`), npm **12.2.3+**
 - [uv](https://docs.astral.sh/uv/) — Python package manager
-- [pnpm 9](https://pnpm.io/) — Node.js package manager (Corepack)
+- [pnpm 12](https://pnpm.io/) — Node.js package manager (version pinned in `packageManager`; settings and overrides live in `pnpm-workspace.yaml`)
 
 ## Quick Start
 

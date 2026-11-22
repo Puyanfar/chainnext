@@ -59,9 +59,7 @@ const ChatComponent = () => {
   // Connect to the WebSocket server
   useEffect(() => {
     connect({
-      userEnv: {
-        /* user environment variables */
-      }
+      userEnv: {/* user environment variables */}
     });
 
     return () => {

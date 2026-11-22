@@ -50,7 +50,7 @@ build-react-client:
   name: Build @chainlit/react-client once
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: ./.github/actions/pnpm-node-install
       name: Install Node, pnpm and dependencies.
     - name: Cache @chainlit/react-client dist
