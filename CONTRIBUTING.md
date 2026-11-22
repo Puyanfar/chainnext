@@ -29,7 +29,7 @@ I've copy/pasted the whole document there, and then formatted it with prettier.
 
 ### Requirements
 
-1. Python >= `3.10`
+1. Python >= `3.15.2`
 2. uv ([See how to install](https://docs.astral.sh/uv/getting-started/installation/))
 3. NodeJS >= `26.13.1` (see `.nvmrc`), npm >= `12.2.3` and pnpm `12.22.0` ([See how to install](https://nodejs.org/en/download))
 4. Pnpm ([See how to install](https://pnpm.io/installation))

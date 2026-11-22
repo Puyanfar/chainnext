@@ -31,7 +31,7 @@ When documenting or writing examples, use `pip install chainnext` and `import ch
 
 ## Prerequisites
 
-- Python: **3.13** (3.10+ is the framework's minimum, but development targets 3.13)
+- Python: **3.15.2+** (3.15.2 is the framework's minimum; lower versions are no longer supported)
 - Node.js: **26.13.1+** (see `.nvmrc`), npm **12.2.3+**
 - [uv](https://docs.astral.sh/uv/) — Python package manager
 - [pnpm 12](https://pnpm.io/) — Node.js package manager (version pinned in `packageManager`; settings and overrides live in `pnpm-workspace.yaml`)
@@ -120,7 +120,7 @@ Examples:
 | **Frontend**                   | React 18, TypeScript 5.2, Vite 5, Tailwind CSS 3, Vitest, Zod 3                                                           |
 | **Frontend (state & routing)** | Recoil, React Router 6, react-hook-form, socket.io-client, SWR                                                            |
 | **Frontend (rendering)**       | react-markdown + remark-gfm/math + rehype-katex/raw, highlight.js, lucide-react (icons), Radix UI (primitives), Plotly.js |
-| **Backend**                    | Python 3.13, FastAPI, Starlette, Uvicorn, python-socketio, Pydantic 2, PyJWT, httpx                                       |
+| **Backend**                    | Python 3.15.2+, FastAPI, Starlette, Uvicorn, python-socketio, Pydantic 2, PyJWT, httpx                                    |
 | **LLM integrations**           | MCP, LangChain, LlamaIndex, OpenAI SDK, Semantic Kernel, MistralAI                                                        |
 | **Infra / persistence**        | SQLAlchemy (PostgreSQL/SQLite), DynamoDB + S3 (boto3), Azure Blob / Data Lake, Google Cloud Storage, LiteralAI            |
 | **DX**                         | pre-commit hooks, linting, formatting, type checking, unit testing, E2E testing                                           |
