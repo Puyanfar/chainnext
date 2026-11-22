@@ -26,6 +26,7 @@ async function killChainlit() {
 });
 
 export default defineConfig({
+  defaultBrowser: 'chrome',
   projectId: 'ij1tyk',
 
   retries: 3,
