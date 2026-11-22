@@ -197,11 +197,11 @@ importers:
         specifier: ^18.3.7
         version: 18.3.7(@types/react@18.3.31)
       cypress:
-        specifier: ^16.2.1
+        specifier: ^16.3.0
         version: 16.3.0
       cypress-plugin-steps:
-        specifier: 1.2.1
-        version: 1.2.1(cypress@16.3.0)
+        specifier: 1.2.2
+        version: 1.2.2(cypress@16.3.0)
       cypress-split:
         specifier: ^1.25.0
         version: 1.25.0(@babel/core@7.29.13(supports-color@8.1.1))(supports-color@8.1.1)
@@ -230,7 +230,7 @@ importers:
         specifier: ^16.4.0
         version: 16.4.0
       prettier:
-        specifier: ^3.9.10
+        specifier: ^3.10.1
         version: 3.10.1
       shell-exec:
         specifier: ^1.1.2
@@ -242,7 +242,7 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
       typescript-eslint:
-        specifier: ^8.72.1
+        specifier: ^8.73.0
         version: 8.73.0(eslint@10.15.0(supports-color@8.1.1))(supports-color@8.1.1)(typescript@5.9.3)
 
 packages:
@@ -1027,8 +1027,8 @@ packages:
   csstype@3.2.4:
     resolution: {integrity: sha512-PoKaoPzQapnEoqUSnHx1u6W6ku8CVEgKsnpmmzU3m1nwkidpPBQ8V/Zq2+bWNrsOKoKLwTGdbx6xF7BXP1zLVQ==}
 
-  cypress-plugin-steps@1.2.1:
-    resolution: {integrity: sha512-L2khZMhTMgbAMBQhh4x2SQweVlb8ugadVsQlunnwGVBN313YfhoxsvWaQjJjm/N+0z/oUSZoKD3yAYkcFKEw9A==}
+  cypress-plugin-steps@1.2.2:
+    resolution: {integrity: sha512-SNiSU8fW3IdkKy9SSFN+nmulgiBlUa11W/tjO6xVo6DTb9OIKZgqnb0WQnGI0OUxeT09MsbPRQoJA+xYIaSmig==}
     peerDependencies:
       cypress: '>=10'
 
@@ -3244,7 +3244,7 @@ snapshots:
 
   csstype@3.2.4: {}
 
-  cypress-plugin-steps@1.2.1(cypress@16.3.0):
+  cypress-plugin-steps@1.2.2(cypress@16.3.0):
     dependencies:
       cypress: 16.3.0
 

@@ -5,8 +5,8 @@
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
-    "cypress": "^16.2.1",
-    "cypress-plugin-steps": "1.2.1",
+    "cypress": "^16.3.0",
+    "cypress-plugin-steps": "1.2.2",
     "cypress-split": "^1.25.0",
     "dotenv": "^16.6.1",
     "eslint": "^10.14.0",
@@ -16,11 +16,11 @@
     "globals": "^17.14.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "prettier": "^3.9.10",
+    "prettier": "^3.10.1",
     "shell-exec": "^1.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.72.1"
+    "typescript-eslint": "^8.73.0"
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
