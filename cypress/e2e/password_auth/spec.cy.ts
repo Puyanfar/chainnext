@@ -47,14 +47,13 @@ describe('Password Auth', () => {
           it('should have an access_token cookie in /login response', () => {
             cy.wait('@login').then((interception) => {
               expect(interception.response.statusCode).to.equal(200);
-
-              // Response contains `Authorization` cookie, starting with Bearer
-              expect(interception.response.headers).to.have.property(
-                'set-cookie'
-              );
-              const cookie = interception.response.headers['set-cookie'][0];
-              expect(cookie).to.contain('access_token');
             });
+            // Browser-agnostic: assert the cookie is actually stored.
+            // Chromium 157+ no longer exposes the Set-Cookie header line to
+            // the XHR/fetch interceptor, so checking the cookie jar instead.
+            cy.getCookie('access_token')
+              .should('exist')
+              .and('have.property', 'value');
           });
 
           it('should request and have access to /user', () => {
