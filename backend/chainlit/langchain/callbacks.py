@@ -366,8 +366,8 @@ class LangchainTracer(AsyncBaseTracer, GenerationHelper, FinalStreamHelper):
         serialized: Dict[str, Any],
         messages: List[List[BaseMessage]],
         *,
-        run_id: "UUID",
-        parent_run_id: Optional["UUID"] = None,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
         tags: Optional[List[str]] = None,
         metadata: Optional[Dict[str, Any]] = None,
         name: Optional[str] = None,
@@ -397,7 +397,7 @@ class LangchainTracer(AsyncBaseTracer, GenerationHelper, FinalStreamHelper):
         serialized: Dict[str, Any],
         prompts: List[str],
         *,
-        run_id: "UUID",
+        run_id: UUID,
         parent_run_id: Optional[UUID] = None,
         tags: Optional[List[str]] = None,
         metadata: Optional[Dict[str, Any]] = None,
@@ -424,11 +424,11 @@ class LangchainTracer(AsyncBaseTracer, GenerationHelper, FinalStreamHelper):
 
     async def on_llm_new_token(
         self,
-        token: str,
+        token: str | list[str | dict[str, Any]],
         *,
         chunk: Optional[Union[GenerationChunk, ChatGenerationChunk]] = None,
-        run_id: "UUID",
-        parent_run_id: Optional["UUID"] = None,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
         **kwargs: Any,
     ) -> None:
         await super().on_llm_new_token(
