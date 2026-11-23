@@ -1,5 +1,5 @@
 [dependency-groups]
-dev = ["actionlint-py>=1.7.12.24"]
+dev = ["actionlint-py>=1.7.12.25"]
 backend = ["chainnext"]
 
 [tool.mypy]
@@ -22,6 +22,7 @@ module = [
     "azure.storage.blob.aio",
     "google.auth",
     "google.oauth2",
+    "semantic_kernel.*",
 ]
 ignore_missing_imports = true
 
