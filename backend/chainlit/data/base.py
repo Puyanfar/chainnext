@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING
 
 from chainlit.types import (
     Feedback,
@@ -21,11 +21,11 @@ class BaseDataLayer(ABC):
     """Base class for data persistence."""
 
     @abstractmethod
-    async def get_user(self, identifier: str) -> Optional["PersistedUser"]:
+    async def get_user(self, identifier: str) -> PersistedUser | None:
         pass
 
     @abstractmethod
-    async def create_user(self, user: "User") -> Optional["PersistedUser"]:
+    async def create_user(self, user: User) -> PersistedUser | None:
         pass
 
     @abstractmethod
@@ -44,28 +44,26 @@ class BaseDataLayer(ABC):
 
     @queue_until_user_message()
     @abstractmethod
-    async def create_element(self, element: "Element"):
+    async def create_element(self, element: Element):
         pass
 
     @abstractmethod
-    async def get_element(
-        self, thread_id: str, element_id: str
-    ) -> Optional["ElementDict"]:
-        pass
-
-    @queue_until_user_message()
-    @abstractmethod
-    async def delete_element(self, element_id: str, thread_id: Optional[str] = None):
+    async def get_element(self, thread_id: str, element_id: str) -> ElementDict | None:
         pass
 
     @queue_until_user_message()
     @abstractmethod
-    async def create_step(self, step_dict: "StepDict"):
+    async def delete_element(self, element_id: str, thread_id: str | None = None):
         pass
 
     @queue_until_user_message()
     @abstractmethod
-    async def update_step(self, step_dict: "StepDict"):
+    async def create_step(self, step_dict: StepDict):
+        pass
+
+    @queue_until_user_message()
+    @abstractmethod
+    async def update_step(self, step_dict: StepDict):
         pass
 
     @queue_until_user_message()
@@ -83,22 +81,22 @@ class BaseDataLayer(ABC):
 
     @abstractmethod
     async def list_threads(
-        self, pagination: "Pagination", filters: "ThreadFilter"
-    ) -> "PaginatedResponse[ThreadDict]":
+        self, pagination: Pagination, filters: ThreadFilter
+    ) -> PaginatedResponse[ThreadDict]:
         pass
 
     @abstractmethod
-    async def get_thread(self, thread_id: str) -> "Optional[ThreadDict]":
+    async def get_thread(self, thread_id: str) -> ThreadDict | None:
         pass
 
     @abstractmethod
     async def update_thread(
         self,
         thread_id: str,
-        name: Optional[str] = None,
-        user_id: Optional[str] = None,
-        metadata: Optional[Dict] = None,
-        tags: Optional[List[str]] = None,
+        name: str | None = None,
+        user_id: str | None = None,
+        metadata: dict | None = None,
+        tags: list[str] | None = None,
     ):
         pass
 
@@ -111,12 +109,10 @@ class BaseDataLayer(ABC):
         pass
 
     @abstractmethod
-    async def get_favorite_steps(self, user_id: str) -> List["StepDict"]:
+    async def get_favorite_steps(self, user_id: str) -> list[StepDict]:
         pass
 
-    async def set_step_favorite(
-        self, step_dict: "StepDict", favorite: bool
-    ) -> "StepDict":
+    async def set_step_favorite(self, step_dict: StepDict, favorite: bool) -> StepDict:
         metadata = step_dict.get("metadata") or {}
         metadata["favorite"] = favorite
         step_dict["metadata"] = metadata

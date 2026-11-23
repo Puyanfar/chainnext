@@ -1,9 +1,9 @@
-import datetime
+import datetime as dt
 import logging
 import os
 import pathlib
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 from unittest.mock import AsyncMock, Mock, create_autospec, mock_open
 
 import pytest
@@ -422,7 +422,7 @@ def test_file_access_by_different_user(
         id="another_session_id",
         user=PersistedUser(
             id="another_user_id",
-            createdAt=datetime.datetime.now().isoformat(),
+            createdAt=dt.datetime.now().isoformat(),
             identifier="another_user_identifier",
         ),
     )
@@ -1094,7 +1094,7 @@ def test_share_thread_endpoint_sets_flags(
 
     author = PersistedUser(
         id="u1",
-        createdAt=datetime.datetime.now().isoformat(),
+        createdAt=dt.datetime.now().isoformat(),
         identifier="author",
     )
 

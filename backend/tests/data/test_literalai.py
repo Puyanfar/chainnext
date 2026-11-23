@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import uuid
 from unittest.mock import ANY, AsyncMock, Mock, patch
 
@@ -116,7 +116,7 @@ def test_step(test_thread: LiteralThread):
 def literal_test_user(test_user: User):
     return LiteralUser(
         id=str(uuid.uuid4()),
-        created_at=datetime.datetime.now().isoformat(),
+        created_at=dt.datetime.now().isoformat(),
         identifier=test_user.identifier,
         metadata=test_user.metadata,
     )

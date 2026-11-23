@@ -1,5 +1,4 @@
 import asyncio
-from typing import List, Optional
 
 from chainlit.context import context
 from chainlit.element import ElementBased
@@ -25,7 +24,7 @@ class ElementSidebar:
         await context.emitter.emit("set_sidebar_title", title)
 
     @staticmethod
-    async def set_elements(elements: List[ElementBased], key: Optional[str] = None):
+    async def set_elements(elements: list[ElementBased], key: str | None = None):
         """
         Sets the elements to display in the sidebar and controls sidebar visibility.
 
@@ -34,8 +33,8 @@ class ElementSidebar:
         will open it.
 
         Args:
-            elements (List[ElementBased]): A list of ElementBased objects to display in the sidebar.
-            key (Optional[str], optional): If the sidebar is already opened with the same key, elements will not be replaced.
+            elements (list[ElementBased]): A list of ElementBased objects to display in the sidebar.
+            key (str | None, optional): If the sidebar is already opened with the same key, elements will not be replaced.
 
         Returns:
             None: This method does not return anything.

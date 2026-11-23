@@ -14,7 +14,7 @@ T_ParamSpec = ParamSpec("T_ParamSpec")
 T = TypeVar("T")
 
 
-def run_sync(co: Coroutine[Any, Any, T_Retval]) -> T_Retval:
+def run_sync[T_Retval](co: Coroutine[Any, Any, T_Retval]) -> T_Retval:
     """Run the coroutine synchronously."""
 
     # Copy the current context

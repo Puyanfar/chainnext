@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 
 os.environ["CHAINLIT_AUTH_SECRET"] = "SUPER_SECRET"  # nosec B105
 os.environ["OAUTH_GITHUB_CLIENT_ID"] = "fake_client_id"  # nosec B105
@@ -14,9 +13,8 @@ def oauth_callback(
     token: str,
     raw_user_data: dict,
     default_user: cl.User,
-) -> Optional[cl.User]:
+) -> cl.User | None:
     return default_user
-
 
 @cl.on_chat_start
 async def on_chat_start():
