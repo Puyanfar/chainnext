@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Generic,
     Literal,
     Protocol,
     TypedDict,
@@ -91,7 +90,7 @@ class HasFromDict(Protocol[T]):
 
 
 @dataclass
-class PaginatedResponse(Generic[T]):  # noqa: UP046
+class PaginatedResponse[T]:
     pageInfo: PageInfo
     data: list[T]
 
