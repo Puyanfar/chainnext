@@ -19,7 +19,7 @@ class ChatSettings:
     ) -> None:
         self.inputs = inputs
 
-    def settings(self):
+    def settings(self) -> dict[str, Any]:
         def collect_settings(
             values: dict[str, Any], inputs: List[InputWidget] | List[Tab]
         ) -> None:
