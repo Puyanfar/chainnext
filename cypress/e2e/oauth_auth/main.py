@@ -16,6 +16,7 @@ def oauth_callback(
 ) -> cl.User | None:
     return default_user
 
+
 @cl.on_chat_start
 async def on_chat_start():
     await cl.Message("Hello").send()

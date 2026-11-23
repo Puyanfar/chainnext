@@ -1,4 +1,3 @@
-
 import chainlit as cl
 
 
@@ -19,6 +18,7 @@ async def starter_categories(user: cl.User | None = None):
             ],
         ),
     ]
+
 
 @cl.on_message
 async def on_message(msg: cl.Message):

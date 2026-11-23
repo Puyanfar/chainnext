@@ -83,9 +83,7 @@ class MemoryDataLayer(cl_data.BaseDataLayer):
     async def create_element(self, element: Element):
         pass
 
-    async def get_element(
-        self, thread_id: str, element_id: str
-    ) -> ElementDict | None:
+    async def get_element(self, thread_id: str, element_id: str) -> ElementDict | None:
         pass
 
     async def delete_element(self, element_id: str, thread_id: str | None = None):

@@ -17,6 +17,7 @@ starters = [
     ),
 ]
 
+
 @cl.set_chat_profiles
 async def chat_profile(current_user: cl.User):
     if current_user.metadata["role"] != "ADMIN":
@@ -43,12 +44,14 @@ async def chat_profile(current_user: cl.User):
         ),
     ]
 
+
 @cl.password_auth_callback
 def auth_callback(username: str, password: str) -> cl.User | None:
     if (username, password) == ("admin", "admin"):
         return cl.User(identifier="admin", metadata={"role": "ADMIN"})
     else:
         return None
+
 
 @cl.on_message
 async def on_message():

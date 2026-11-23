@@ -197,9 +197,7 @@ class TestDataLayer(cl_data.BaseDataLayer):
 
         ELEMENTS_STORAGE.append(element.to_dict())
 
-    async def get_element(
-        self, thread_id: str, element_id: str
-    ) -> ElementDict | None:
+    async def get_element(self, thread_id: str, element_id: str) -> ElementDict | None:
         return next((e for e in ELEMENTS_STORAGE if e["id"] == element_id), None)
 
     @queue_until_user_message()
