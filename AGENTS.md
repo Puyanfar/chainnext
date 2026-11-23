@@ -161,6 +161,8 @@ The pnpm workspace includes `frontend/`, `libs/react-client/`, and `libs/copilot
 
 **Integrations**: `langchain/`, `llama_index/`, `openai/`, `semantic_kernel/`, `mistralai/` — each provides callback handlers that bridge those frameworks into Chainlit steps/messages.
 
+> **Semantic Kernel is disabled**: `cl.SemanticKernelFilter` is in the source but the `semantic-kernel` dependency is not installed, because the latest release (1.47.0) requires `pydantic<2.14`, which conflicts with our `pydantic>=2.14.4`. Importing/using `cl.SemanticKernelFilter` raises `ImportError` until a compatible release lands. See [docs/semantic-kernel.md](docs/semantic-kernel.md).
+
 ### Frontend (`frontend/src/`)
 
 React 18 + TypeScript + Vite, styled with Tailwind CSS and Radix UI primitives.
