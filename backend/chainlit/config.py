@@ -2,6 +2,7 @@ import json
 import os
 import site
 import sys
+import tomllib
 from importlib import util
 from pathlib import Path
 from typing import (
@@ -17,7 +18,6 @@ from typing import (
     Union,
 )
 
-import tomli
 from pydantic import BaseModel, Field, model_validator
 from pydantic_settings import BaseSettings
 from starlette.datastructures import Headers
@@ -365,7 +365,7 @@ class McpFeature(BaseModel):
     user_servers: McpUserServersFeature = Field(default_factory=McpUserServersFeature)
 
     @model_validator(mode="after")
-    def _check_server_names(self) -> "McpFeature":
+    def _check_server_names(self) -> McpFeature:
         """Reject empty/whitespace-only server names, and names that collide
         once normalised, so a second entry can't silently shadow the first.
 
@@ -468,55 +468,55 @@ class UISettings(BaseModel):
 
 class CodeSettings(BaseModel):
     # App action functions
-    action_callbacks: Dict[str, Callable[["Action"], Any]]
+    action_callbacks: Dict[str, Callable[[Action], Any]]
 
     # Module object loaded from the module_name
     module: Any = None
 
     # App life cycle callbacks
-    on_app_startup: Optional[Callable[[], Union[None, Awaitable[None]]]] = None
-    on_app_shutdown: Optional[Callable[[], Union[None, Awaitable[None]]]] = None
+    on_app_startup: Optional[Callable[[], Union[Awaitable[None], None]]] = None
+    on_app_shutdown: Optional[Callable[[], Union[Awaitable[None], None]]] = None
 
     # Session life cycle callbacks
-    on_logout: Optional[Callable[["Request", "Response"], Any]] = None
+    on_logout: Optional[Callable[[Request, Response], Any]] = None
     on_stop: Optional[Callable[[], Any]] = None
     on_chat_start: Optional[Callable[[], Any]] = None
     on_chat_end: Optional[Callable[[], Any]] = None
-    on_chat_resume: Optional[Callable[["ThreadDict"], Any]] = None
-    on_message: Optional[Callable[["Message"], Any]] = None
-    on_feedback: Optional[Callable[["Feedback"], Any]] = None
+    on_chat_resume: Optional[Callable[[ThreadDict], Any]] = None
+    on_message: Optional[Callable[[Message], Any]] = None
+    on_feedback: Optional[Callable[[Feedback], Any]] = None
     on_slack_reaction_added: Optional[Callable[[Dict[str, Any]], Any]] = None
     on_audio_start: Optional[Callable[[], Any]] = None
-    on_audio_chunk: Optional[Callable[["InputAudioChunk"], Any]] = None
+    on_audio_chunk: Optional[Callable[[InputAudioChunk], Any]] = None
     on_audio_end: Optional[Callable[[], Any]] = None
     on_mcp_connect: Optional[Callable] = None
     on_mcp_disconnect: Optional[Callable] = None
     on_settings_edit: Optional[Callable[[Dict[str, Any]], Any]] = None
     on_settings_update: Optional[Callable[[Dict[str, Any]], Any]] = None
     set_chat_profiles: Optional[
-        Callable[[Optional["User"], Optional["str"]], Awaitable[List["ChatProfile"]]]
+        Callable[[Optional[User], Optional[str]], Awaitable[List[ChatProfile]]]
     ] = None
     set_starters: Optional[
-        Callable[[Optional["User"], Optional["str"]], Awaitable[List["Starter"]]]
+        Callable[[Optional[User], Optional[str]], Awaitable[List[Starter]]]
     ] = None
     set_starter_categories: Optional[
         Callable[
-            [Optional["User"], Optional["str"], Optional["str"]],
-            Awaitable[List["StarterCategory"]],
+            [Optional[User], Optional[str], Optional[str]],
+            Awaitable[List[StarterCategory]],
         ]
     ] = None
     on_shared_thread_view: Optional[
-        Callable[["ThreadDict", Optional["User"]], Awaitable[bool]]
+        Callable[[ThreadDict, Optional[User]], Awaitable[bool]]
     ] = None
     # Auth callbacks
     password_auth_callback: Optional[
-        Callable[[str, str], Awaitable[Optional["User"]]]
+        Callable[[str, str], Awaitable[Optional[User]]]
     ] = None
-    header_auth_callback: Optional[Callable[[Headers], Awaitable[Optional["User"]]]] = (
+    header_auth_callback: Optional[Callable[[Headers], Awaitable[Optional[User]]]] = (
         None
     )
     oauth_callback: Optional[
-        Callable[[str, str, Dict[str, str], "User"], Awaitable[Optional["User"]]]
+        Callable[[str, str, Dict[str, str], User], Awaitable[Optional[User]]]
     ] = None
 
     # Helpers
@@ -624,8 +624,8 @@ class ChainlitConfig(BaseSettings):
         return translation
 
     def with_overrides(
-        self, overrides: "ChainlitConfigOverrides | None"
-    ) -> "ChainlitConfig":
+        self, overrides: ChainlitConfigOverrides | None
+    ) -> ChainlitConfig:
         base = self.model_dump()
         patch = overrides.model_dump(exclude_unset=True) if overrides else {}
 
@@ -712,7 +712,7 @@ def load_module(target: str, force_refresh: bool = False):
 
 # Legacy (pre-2.12.0) per-transport MCP sections. These were replaced by a
 # unified `[[features.mcp.servers]]` array plus `[features.mcp.user_servers]`.
-# Note: `streamable-http` contains a hyphen, so tomli parses it into the dict
+# Note: `streamable-http` contains a hyphen, so tomllib parses it into the dict
 # under the literal key "streamable-http" (not an attribute-style name).
 _LEGACY_MCP_TRANSPORT_KEYS = ("sse", "stdio", "streamable-http")
 
@@ -795,7 +795,7 @@ def _check_legacy_mcp_config(features_settings: Dict[str, Any]) -> None:
 
 def load_settings():
     with open(config_file, "rb") as f:
-        toml_dict = tomli.load(f)
+        toml_dict = tomllib.load(f)
         # Load project settings
         project_config = toml_dict.get("project", {})
         features_settings = toml_dict.get("features", {})
