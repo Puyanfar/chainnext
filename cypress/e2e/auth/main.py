@@ -32,14 +32,27 @@ async def custom_token_auth() -> Response:
     return response
 
 
-catch_all_route = None
-for route in app.routes:
-    if route.path == "/{full_path:path}":
-        catch_all_route = route
+# FastAPI >= 0.165 wraps included routers in _IncludedRouter (no .path), which
+# shadows the /auth/* endpoints below. Move the catch-all's wrapper last.
+def _move_spa_catch_all_to_end(routes) -> None:
+    from fastapi.routing import _IncludedRouter
 
-if catch_all_route:
-    app.routes.remove(catch_all_route)
-    app.routes.append(catch_all_route)
+    catch_all_wrappers = [
+        r
+        for r in routes
+        if isinstance(r, _IncludedRouter)
+        and any(
+            getattr(route, "path", None) == "/{full_path:path}"
+            for route in r.original_router.routes
+        )
+    ]
+
+    for wrapper in catch_all_wrappers:
+        routes.remove(wrapper)
+        routes.append(wrapper)
+
+
+_move_spa_catch_all_to_end(app.router.routes)
 
 
 @cl.on_chat_start
