@@ -4,11 +4,12 @@ import os
 import sys
 
 import click
-import nest_asyncio
+import nest_asyncio2
 import uvicorn
 
-# Not sure if it is necessary to call nest_asyncio.apply() before the other imports
-nest_asyncio.apply()
+# Allow nested event loops: chainlit.sync.run_sync (syncer.sync)
+# and Session.get_config (run_until_complete) re-enter the running loop.
+nest_asyncio2.apply(error_on_mispatched=True)
 
 # ruff: noqa: E402
 from chainlit.auth import ensure_jwt_secret

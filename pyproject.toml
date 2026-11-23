@@ -13,7 +13,7 @@ module = [
     "langflow",
     "lazify",
     "plotly",
-    "nest_asyncio",
+    "nest_asyncio2",
     "socketio.*",
     "syncer",
     "azure.storage.filedatalake",
