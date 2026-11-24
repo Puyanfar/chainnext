@@ -27,6 +27,7 @@ from fastapi import (
 )
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.routing import APIRoute
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.datastructures import URL
 from starlette.middleware.cors import CORSMiddleware
@@ -2189,7 +2190,10 @@ def health_check():
     return {"status": "ok"}
 
 
-@router.get("/{full_path:path}")
+SPA_FALLBACK_PATH = "/{full_path:path}"
+
+
+@router.get(SPA_FALLBACK_PATH)
 async def serve(request: Request):
     """Serve the UI files."""
     root_path = os.getenv("CHAINLIT_PARENT_ROOT_PATH", "") + os.getenv(
@@ -2199,6 +2203,66 @@ async def serve(request: Request):
     response = HTMLResponse(content=html_template, status_code=200)
 
     return response
+
+
+# Captured once at import: the route's path already contains config.run.root_path
+# (APIRouter applies its prefix in add_api_route), so identify it by endpoint.
+SPA_FALLBACK_ROUTE: APIRoute | None = next(
+    (
+        cast(APIRoute, route)
+        for route in router.routes
+        if getattr(route, "endpoint", None) is serve
+    ),
+    None,
+)
+
+
+def _move_spa_fallback_to_end(
+    target_app: FastAPI, target_router: APIRouter, spa_route: APIRoute
+) -> bool:
+    """Move a single route to the end of the app's top-level route table."""
+    if spa_route not in target_router.routes:
+        return False
+
+    target_router.routes.remove(spa_route)
+
+    # The moved APIRoute keeps its already-prefixed path, so a plain router is
+    # enough to preserve the served URL (including --root-path deployments).
+    spa_router = APIRouter()
+    spa_router.routes.append(spa_route)
+    target_app.include_router(spa_router)
+
+    # Direct list mutation does not bump FastAPI's route version. Invalidate
+    # cached effective candidates in case this runs after a request.
+    mark_routes_changed = getattr(target_router, "_mark_routes_changed", None)
+    if callable(mark_routes_changed):
+        mark_routes_changed()
+    return True
+
+
+def ensure_spa_fallback_last() -> bool:
+    """Make the SPA fallback match after routes registered later.
+
+    FastAPI >= 0.137 keeps included routers in ``app.routes`` as a tree, so
+    moving the flattened ``APIRoute`` (the pre-0.137 workaround) no longer
+    works. Call this after registering your own routes on
+    ``chainlit.server.app``::
+
+        @app.get("/auth/custom")
+        async def custom_auth(...): ...
+
+        ensure_spa_fallback_last()
+
+    Only the SPA fallback is moved to the end of the top-level route table;
+    every other Chainlit route keeps its original precedence. This is a no-op
+    if the fallback was already moved.
+
+    Call during startup, after declaring your routes and before serving
+    requests.
+    """
+    if SPA_FALLBACK_ROUTE is None:
+        return False
+    return _move_spa_fallback_to_end(app, router, SPA_FALLBACK_ROUTE)
 
 
 app.include_router(router)

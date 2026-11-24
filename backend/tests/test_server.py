@@ -1328,3 +1328,44 @@ def test_oauth_azure_hf_callback_none_user_redirects(
     )
     assert response.status_code == 303
     assert "error=oauthSignin" in response.headers["location"]
+
+
+@pytest.mark.parametrize("prefix", ["", "/foo"])
+def test_move_spa_fallback_to_end_preserves_route_priority(prefix: str):
+    """The SPA fallback must be evaluated after routes registered later."""
+    from fastapi import APIRouter, FastAPI
+    from fastapi.responses import HTMLResponse
+    from fastapi.routing import APIRoute
+
+    from chainlit.server import _move_spa_fallback_to_end
+
+    router = APIRouter(prefix=prefix)
+
+    @router.get("/{full_path:path}")
+    async def serve(full_path: str):
+        return HTMLResponse(f"spa:{full_path}")
+
+    @router.get("/health")
+    async def health():
+        return {"status": "ok"}
+
+    app = FastAPI()
+    app.include_router(router)
+
+    # Registered after include_router, like custom auth routes in user apps.
+    @app.get(f"{prefix}/custom")
+    async def custom():
+        return {"custom": True}
+
+    spa_route = next(
+        route for route in router.routes if getattr(route, "endpoint", None) is serve
+    )
+    assert isinstance(spa_route, APIRoute)
+
+    assert _move_spa_fallback_to_end(app, router, spa_route) is True
+    assert _move_spa_fallback_to_end(app, router, spa_route) is False
+
+    client = TestClient(app)
+    assert client.get(f"{prefix}/custom").json() == {"custom": True}
+    assert client.get(f"{prefix}/health").json() == {"status": "ok"}
+    assert client.get(f"{prefix}/deep/link").text == "spa:deep/link"

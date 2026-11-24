@@ -9,6 +9,16 @@ PyPI package is **`chainnext`**; the Python import and CLI remain **`chainlit`**
 
 ## [Unreleased]
 
+### Added
+
+- `chainlit.server.ensure_spa_fallback_last()`: moves the SPA fallback after
+  routes registered on `chainlit.server.app`, restoring the pre-FastAPI-0.137
+  route-table behavior without changing the precedence of any other Chainlit
+  route. Opt-in; no behavior change unless called.
+- Route introspection now uses `fastapi.routing.iter_route_contexts()` in tests;
+  `app.routes` is a tree on FastAPI >= 0.137 and included routers no longer
+  expose `.path`.
+
 ### Changed
 
 - This repository is now the **chainnext** fork of the archived Chainlit project.
