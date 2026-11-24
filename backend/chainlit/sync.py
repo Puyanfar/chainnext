@@ -1,6 +1,7 @@
 import asyncio
 import threading
-from typing import Any, Coroutine, ParamSpec, TypeVar
+from collections.abc import Coroutine
+from typing import Any, ParamSpec, TypeVar
 
 from asyncer import asyncify
 from syncer import sync
@@ -14,7 +15,7 @@ T_ParamSpec = ParamSpec("T_ParamSpec")
 T = TypeVar("T")
 
 
-def run_sync(co: Coroutine[Any, Any, T_Retval]) -> T_Retval:
+def run_sync[T_Retval](co: Coroutine[Any, Any, T_Retval]) -> T_Retval:
     """Run the coroutine synchronously."""
 
     # Copy the current context

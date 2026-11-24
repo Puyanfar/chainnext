@@ -37,7 +37,7 @@ Do **not** `pip install chainlit` for this fork, and do **not** `import chainnex
 
 ## Installation
 
-Open a terminal and run:
+Chainnext requires **Python 3.15.2 or newer**. Open a terminal and run:
 
 ```sh
 pip install chainnext
@@ -54,7 +54,7 @@ The latest in-development version can be installed straight from GitHub with:
 pip install git+https://github.com/Puyanfar/chainnext.git#subdirectory=backend/
 ```
 
-(Requires Node and pnpm installed on the system.)
+(Requires Node.js 26.13.1+, npm 12.2.3+, and pnpm 12.22.0.)
 
 ## 🚀 Quickstart
 
@@ -86,7 +86,6 @@ async def main(message: cl.Message):
         None.
     """
 
-
     # Call the tool
     tool_res = await tool()
 
@@ -109,7 +108,7 @@ Tell us what you would like to see added in Chainnext using the GitHub issues.
 
 ## 💁 Contributing
 
-As an open-source initiative in a rapidly evolving domain, we welcome contributions, be it through the addition of new features or the improvement of documentation.
+We welcome bug fixes and security fixes. At this time, pull requests that introduce new features are not reviewed or merged; please open an issue to discuss feature ideas first.
 
 For detailed information on how to contribute, see [here](/CONTRIBUTING.md).
 

@@ -50,7 +50,7 @@ class SemanticKernelFilter(BaseModel):
         excluded_plugins: list[str] | None = None,
         excluded_functions: list[str] | None = None,
         *,
-        kernel: "Kernel | None" = None,
+        kernel: Kernel | None = None,
     ) -> None:
         super().__init__(
             excluded_plugins=excluded_plugins, excluded_functions=excluded_functions
@@ -58,7 +58,7 @@ class SemanticKernelFilter(BaseModel):
         if kernel:
             self.add_to_kernel(kernel)
 
-    def add_to_kernel(self, kernel: "Kernel") -> None:
+    def add_to_kernel(self, kernel: Kernel) -> None:
         """Adds the filter to the provided kernel.
 
         Args:
@@ -66,7 +66,7 @@ class SemanticKernelFilter(BaseModel):
         """
         kernel.add_filter("function_invocation", self._function_invocation_filter)  # type: ignore[arg-type]
 
-    def parse_arguments(self, arguments: "KernelArguments") -> dict[str, Any] | str:
+    def parse_arguments(self, arguments: KernelArguments) -> dict[str, Any] | str:
         """Parse the KernelArguments used for the function.
 
         This function can be subclassed to easily adopt how the input arguments are displayed.
@@ -89,8 +89,8 @@ class SemanticKernelFilter(BaseModel):
 
     async def _function_invocation_filter(
         self,
-        context: "FunctionInvocationContext",
-        next: Callable[["FunctionInvocationContext"], Awaitable[None]],
+        context: FunctionInvocationContext,
+        next: Callable[[FunctionInvocationContext], Awaitable[None]],
     ):
         if (
             self.excluded_plugins

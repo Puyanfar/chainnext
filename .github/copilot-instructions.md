@@ -25,7 +25,7 @@ Always reference these instructions first and fallback to search or bash command
 
    # Install Python dependencies - takes ~2 minutes, NEVER CANCEL
    cd backend
-   uv sync --extra tests --extra mypy --extra dev --extra custom-data
+   uv sync --all-extras
    # Timeout: Use 300+ seconds (5+ minutes)
 
    # Install Node.js dependencies - takes ~3 minutes, NEVER CANCEL
@@ -93,6 +93,9 @@ pnpm format-check
 # Fix formatting
 pnpm format
 
+# Verify pnpm overrides against all lockfiles
+pnpm check-overrides
+
 # Python (scripts/ wrappers around ruff and mypy)
 uv run scripts/lint.py
 uv run scripts/format.py
@@ -102,7 +105,7 @@ uv run scripts/format.py --check
 ### CI Requirements
 
 - **ALWAYS** run `pnpm lint` and `pnpm format-check` before committing or the CI (.github/workflows/ci.yaml) will fail.
-- The CI runs: pytest, lint-backend, lint-ui, and e2e-tests.
+- The CI runs: backend checks, frontend checks (lint, format, type-check, and pnpm overrides), unit tests, and E2E tests.
 - **NEVER CANCEL** any CI commands - they take time but must complete.
 
 ## Key Project Structure
@@ -128,7 +131,7 @@ uv run scripts/format.py --check
 
 ### Working with the Backend
 
-- **Technology**: Python 3.10+ with uv, FastAPI, SocketIO
+- **Technology**: Python 3.15.2+ with uv, FastAPI, SocketIO
 - **Entry point**: `backend/chainlit/`
 - **Tests**: `backend/tests/`
 - **Dependencies**: Defined in `backend/pyproject.toml`
@@ -192,7 +195,7 @@ uv run chainlit run app.py -w
 
 ## Requirements
 
-- **Python**: >= 3.10
+- **Python**: >= 3.15.2
 - **Node.js**: >= 26.13.1
-- **uv**: 2.1.3 (install via pipx)
+- **uv**: latest (0.13.x at time of writing; install via pipx)
 - **pnpm**: 12.22.0 (install via npm)

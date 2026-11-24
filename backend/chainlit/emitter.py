@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from typing import Any, Dict, List, Literal, Optional, Union, cast, get_args
+from typing import Any, Literal, cast, get_args
 
 from socketio.exceptions import TimeoutError
 
@@ -103,15 +103,13 @@ class BaseChainlitEmitter:
 
     async def send_ask_user(
         self, step_dict: StepDict, spec: AskSpec, raise_on_timeout=False
-    ) -> Optional[
-        Union["StepDict", "AskActionResponse", "AskElementResponse", List["FileDict"]]
-    ]:
+    ) -> StepDict | AskActionResponse | AskElementResponse | list[FileDict] | None:
         """Stub method to send a prompt to the UI and wait for a response."""
         pass
 
     async def send_call_fn(
-        self, name: str, args: Dict[str, Any], timeout=300, raise_on_timeout=False
-    ) -> Optional[Dict[str, Any]]:
+        self, name: str, args: dict[str, Any], timeout=300, raise_on_timeout=False
+    ) -> dict[str, Any] | None:
         """Stub method to send a call function event to the copilot and wait for a response."""
         pass
 
@@ -139,11 +137,11 @@ class BaseChainlitEmitter:
         """Stub method to set chat settings."""
         pass
 
-    async def set_commands(self, commands: List[CommandDict]):
+    async def set_commands(self, commands: list[CommandDict]):
         """Stub method to send the available commands to the UI."""
         pass
 
-    async def set_modes(self, modes: List[Mode]):
+    async def set_modes(self, modes: list[Mode]):
         """Stub method to send the available modes to the UI."""
         pass
 
@@ -151,11 +149,11 @@ class BaseChainlitEmitter:
         """Stub method to send custom data to the host window."""
         pass
 
-    async def send_toast(self, message: str, type: Optional[ToastType] = "info"):
+    async def send_toast(self, message: str, type: ToastType | None = "info"):
         """Stub method to send a toast message to the UI."""
         pass
 
-    async def set_favorites(self, steps: List[StepDict]):
+    async def set_favorites(self, steps: list[StepDict]):
         """Stub method to send the favorite messages to the UI."""
         pass
 
@@ -326,17 +324,21 @@ class ChainlitEmitter(BaseChainlitEmitter):
             # Send the prompt to the UI
             user_res = await self.emit_call(
                 "ask", {"msg": step_dict, "spec": spec.to_dict()}, spec.timeout
-            )  # type: Optional[Union["StepDict", "AskActionResponse", "AskElementResponse", List["FileReference"]]]
+            )  # type: StepDict | AskActionResponse | AskElementResponse | list[FileReference] | None
 
             # End the task temporarily so that the User can answer the prompt
             await self.task_end()
 
-            final_res: Optional[
-                Union[StepDict, AskActionResponse, AskElementResponse, List[FileDict]]
-            ] = None
+            final_res: (
+                StepDict
+                | AskActionResponse
+                | AskElementResponse
+                | list[FileDict]
+                | None
+            ) = None
 
             if user_res:
-                interaction: Union[str, None] = None
+                interaction: str | None = None
                 if spec.type == "text":
                     message_dict_res = cast(StepDict, user_res)
                     await self.process_message(
@@ -345,7 +347,7 @@ class ChainlitEmitter(BaseChainlitEmitter):
                     interaction = message_dict_res["output"]
                     final_res = message_dict_res
                 elif spec.type == "file":
-                    file_refs = cast(List[FileReference], user_res)
+                    file_refs = cast(list[FileReference], user_res)
                     files = [
                         self.session.files[file["id"]]
                         for file in file_refs
@@ -391,13 +393,13 @@ class ChainlitEmitter(BaseChainlitEmitter):
             await self.task_start()
 
     async def send_call_fn(
-        self, name: str, args: Dict[str, Any], timeout=300, raise_on_timeout=False
-    ) -> Optional[Dict[str, Any]]:
+        self, name: str, args: dict[str, Any], timeout=300, raise_on_timeout=False
+    ) -> dict[str, Any] | None:
         """Stub method to send a call function event to the copilot and wait for a response."""
         try:
             call_fn_res = await self.emit_call(
                 "call_fn", {"name": name, "args": args}, timeout
-            )  # type: Dict
+            )  # type: dict
 
             await self.clear("clear_call_fn")
             return call_fn_res
@@ -437,24 +439,24 @@ class ChainlitEmitter(BaseChainlitEmitter):
             {"id": id, "token": token, "isSequence": is_sequence, "isInput": is_input},
         )
 
-    def set_chat_settings(self, settings: Dict[str, Any]):
+    def set_chat_settings(self, settings: dict[str, Any]):
         self.session.chat_settings = settings
 
-    def set_commands(self, commands: List[CommandDict]):
+    def set_commands(self, commands: list[CommandDict]):
         """Send the available commands to the UI."""
         return self.emit(
             "set_commands",
             commands,
         )
 
-    def set_modes(self, modes: List[Mode]):
+    def set_modes(self, modes: list[Mode]):
         """Send the available modes to the UI."""
         return self.emit(
             "set_modes",
             [mode.to_dict() for mode in modes],
         )
 
-    def set_favorites(self, steps: List[StepDict]):
+    def set_favorites(self, steps: list[StepDict]):
         """Send the favorite messages to the UI."""
         return self.emit(
             "set_favorites",
@@ -465,7 +467,7 @@ class ChainlitEmitter(BaseChainlitEmitter):
         """Send custom data to the host window."""
         return self.emit("window_message", data)
 
-    async def send_toast(self, message: str, type: Optional[ToastType] = "info"):
+    async def send_toast(self, message: str, type: ToastType | None = "info"):
         """Send a toast message to the UI."""
         # check that the type is valid using ToastType
         if type not in get_args(ToastType):
