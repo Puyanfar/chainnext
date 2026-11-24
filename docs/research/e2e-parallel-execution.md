@@ -1,5 +1,10 @@
 # E2E Test Parallel Execution Research
 
+> **Status (2.13.0):** CI now shards E2E specs with `cypress-split`
+> (`SPLIT`/`SPLIT_INDEX1` in `.github/workflows/e2e-tests.yaml`); local
+> `cypress run` remains sequential. The analysis below is retained for
+> historical context.
+
 ## Current Architecture: Strictly Sequential
 
 The e2e tests **cannot run in parallel** with the current setup. There are four structural reasons.

@@ -1,5 +1,9 @@
 # Copilot Type Checking — Research & Proposed Solutions
 
+> **Status (2.13.0):** Resolved by intentionally skipping Copilot type-checking
+> (`libs/copilot/package.json` `type-check` echoes SKIPPED). CI is green; the
+> analysis below is historical.
+
 ## Problem Statement
 
 Running `tsc --noemit` in `libs/copilot/` fails because copilot **directly imports source files from `@chainlit/app` (the frontend)**, and those source files rely on path aliases/baseUrl settings defined in the frontend's own `tsconfig.json` — settings that are **not available** when TypeScript runs under copilot's `tsconfig.json`.

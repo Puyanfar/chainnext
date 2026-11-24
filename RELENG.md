@@ -27,7 +27,7 @@ publishing JS packages to npm.
 
 2. **Bump the package version**:
    - Update `version` in `backend/chainlit/version.py`.
-   - Update `version` in `libs/*/package.json` if there were any changes in the corresponding directories.
+   - Update `version` in `libs/*/package.json` only if you are publishing that JS package. The JS packages are currently not published to npm.
 
 3. **Update the changelog**:
    - Create a pull request to update the CHANGELOG.md file with the changes for the new release.
@@ -36,11 +36,17 @@ publishing JS packages to npm.
 
 4. **Create a new release**:
    - In the GitHub repo, go to the "Releases" page and click "Draft a new release".
-   - Input the new version number as the tag (e.g. 4.0.4).
-   - Use the "Generate release notes" button to auto-populate the release notes from the changelog.
+   - Input the new version number as the tag with a `v` prefix (for example `v2.13.0`).
+   - Use the "Generate release notes" button to auto-populate the release notes.
    - Review the release notes, make any needed edits for clarity.
    - If this is a full release after an RC, remove any "-rc" suffix from the version number.
-   - Publish the release.
+   - Publish the release. Publishing the GitHub Release triggers
+     `.github/workflows/publish.yaml`, which runs CI, builds the wheel, and
+     publishes with PyPI Trusted Publishing (OIDC); no API tokens are required.
+
+   To dry-run a release first, run the **Publish** workflow manually with
+   `use_testpypi` enabled (the default for `workflow_dispatch`). Only `main` or a
+   published release may publish to PyPI.
 
 5. **Update any associated documentation and examples**:
    - If needed, create PRs to update the version referenced in the docs and example code to match the newly released version.

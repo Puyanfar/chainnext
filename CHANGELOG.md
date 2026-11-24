@@ -9,8 +9,13 @@ PyPI package is **`chainnext`**; the Python import and CLI remain **`chainlit`**
 
 ## [Unreleased]
 
+## [2.13.0] - 2026-11-24
+
 ### Added
 
+- Python 3.15 support; the backend now requires Python >=3.15.2.
+- `nest-asyncio2` for re-entrant event loops used by `cl.run_sync` and session
+  configuration.
 - `chainlit.server.ensure_spa_fallback_last()`: moves the SPA fallback after
   routes registered on `chainlit.server.app`, restoring the pre-FastAPI-0.137
   route-table behavior without changing the precedence of any other Chainlit
@@ -18,14 +23,40 @@ PyPI package is **`chainnext`**; the Python import and CLI remain **`chainlit`**
 - Route introspection now uses `fastapi.routing.iter_route_contexts()` in tests;
   `app.routes` is a tree on FastAPI >= 0.137 and included routers no longer
   expose `.path`.
+- `pnpm check-overrides` verifies every declared pnpm override against all four
+  lockfiles in CI.
 
 ### Changed
 
+- **Breaking:** dropped support for Python <3.15.2, Node.js <26.13.1,
+  npm <12.2.3, and pnpm <12.22.0.
+- Upgraded backend dependencies: FastAPI 0.165, Starlette 1.10, Uvicorn 0.54,
+  Pydantic 2.14, MCP 1.30, LangChain 1.5, LlamaIndex 0.14, OpenAI 3.57, and
+  related packages.
+- Upgraded frontend dependencies: TypeScript 5.9, Vite 6, React Router 7,
+  Zod 4, Vitest 4, Cypress 16, ESLint 10, and jsdom 27.
+- Modernized type annotations (PEP 695 generics and builtin generics) and
+  removed deprecated APIs (`re.prefixmatch`, `collections.abc.Coroutine`,
+  `typing.Annotated`, and the Pydantic v1 fallback).
+- Updated pytest-asyncio configuration and Starlette test-client cookie usage.
 - This repository is now the **chainnext** fork of the archived Chainlit project.
 - The PyPI distribution name is `chainnext` (`pip install chainnext`).
 - The Python import (`import chainlit`), CLI (`chainlit`), config directory
   (`.chainlit/`), welcome file (`chainlit.md`), and `CHAINLIT_*` environment
   variables are unchanged so existing Chainlit apps keep working.
+
+### Fixed
+
+- Routes registered on `chainlit.server.app` after startup are no longer
+  shadowed by the SPA fallback.
+- Test-suite warnings from deprecated `asyncio`, Starlette, and pytest-asyncio
+  patterns.
+
+### Security
+
+- Patched transitive frontend dependencies (including `lodash`, `postcss`,
+  `micromatch`, `form-data`, `undici`, `ws`, and `rollup`) via pnpm overrides.
+- The MCP fixes from 2.12.0 remain in effect.
 
 ## [2.12.0] - 2026-08-25
 

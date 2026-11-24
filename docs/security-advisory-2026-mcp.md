@@ -201,10 +201,8 @@ Chainlit v2.11.0. We thank SPL Security for the thorough, responsibly disclosed 
 
 ## Timeline
 
-| Date       | Event                                    |
-| ---------- | ---------------------------------------- |
-| 2026-04-08 | Report received from SPL Security        |
-| 2026-04-08 | Vulnerabilities confirmed by maintainers |
-| 2026-04-xx | Fix merged (this PR)                     |
-| 2026-xx-xx | v2.12.0 released                         |
-| 2026-xx-xx | Advisory published                       |
+| Date       | Event                                           |
+| ---------- | ----------------------------------------------- |
+| 2026-04-08 | Report received from SPL Security               |
+| 2026-04-08 | Vulnerabilities confirmed by maintainers        |
+| 2026-08-25 | v2.12.0 released with fixes; advisory published |

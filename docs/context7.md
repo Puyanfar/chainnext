@@ -52,11 +52,11 @@ Pre-resolved library IDs for [Context7 MCP](https://context7.com). Use these whe
 
 ## Frontend — core
 
-| Library/Framework | Context7 Library ID          | Notes                     |
-| ----------------- | ---------------------------- | ------------------------- |
-| React             | /websites/react_dev          | Core UI library           |
-| React Router      | /websites/reactrouter_6_30_3 | Client-side routing (v6)  |
-| Vite              | /websites/vite_dev           | Build tool and dev server |
+| Library/Framework | Context7 Library ID   | Notes                     |
+| ----------------- | --------------------- | ------------------------- |
+| React             | /websites/react_dev   | Core UI library           |
+| React Router      | /websites/reactrouter | Client-side routing (v7)  |
+| Vite              | /websites/vite_dev    | Build tool and dev server |
 
 ## Frontend — UI
 

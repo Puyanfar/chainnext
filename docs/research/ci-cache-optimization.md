@@ -1,5 +1,10 @@
 # CI Cache Optimization Research
 
+> **Status (2.13.0):** Historical snapshot from upstream Chainlit. Current CI uses
+> Python 3.15 only, Cypress 16.3, pnpm 12.22, cypress-split sharding, and has no
+> `pnpm run buildUi` script. Check `.github/workflows/*.yaml` before applying any
+> recommendation below.
+
 > Last CI run analyzed: [#5989](https://github.com/Chainlit/chainlit/actions/runs/24017813922) on `feat/parallel-cypress` (2026-04-06, success, 13m 36s wall clock)
 
 ## Timing Findings
