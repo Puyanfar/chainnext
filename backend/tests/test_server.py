@@ -1229,9 +1229,9 @@ def test_oauth_callback_get_token_error_redirects(
     """get_token exception → redirect instead of 500 (regression for #1273)."""
     test_config.code.oauth_callback = AsyncMock()
     mock_oauth_provider.get_token = AsyncMock(side_effect=Exception("provider down"))
+    test_client.cookies.set("oauth_state", "valid_state")
     response = test_client.get(
         "/auth/oauth/github/callback?code=fake_code&state=valid_state",
-        cookies={"oauth_state": "valid_state"},
         follow_redirects=False,
     )
     assert response.status_code == 302
@@ -1245,9 +1245,9 @@ def test_oauth_callback_none_user_redirects(
 ):
     """oauth_callback returns None → redirect instead of 401 JSON (regression for #1273)."""
     test_config.code.oauth_callback = AsyncMock(return_value=None)
+    test_client.cookies.set("oauth_state", "valid_state")
     response = test_client.get(
         "/auth/oauth/github/callback?code=fake_code&state=valid_state",
-        cookies={"oauth_state": "valid_state"},
         follow_redirects=False,
     )
     assert response.status_code == 302

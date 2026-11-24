@@ -125,12 +125,6 @@ class GenerationHelper:
                 for key, value in data.items()
             }
         elif isinstance(data, pydantic.BaseModel):
-            # Fallback to support pydantic v1
-            # https://docs.pydantic.dev/latest/migration/#changes-to-pydanticbasemodel
-            if pydantic.VERSION.startswith("1"):
-                return data.dict()
-
-            # pydantic v2
             return data.model_dump()  # pyright: ignore reportAttributeAccessIssue
         elif isinstance(data, list):
             return [self.ensure_values_serializable(item) for item in data]

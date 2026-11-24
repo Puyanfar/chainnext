@@ -338,7 +338,7 @@ class WebsocketSession(BaseSession):
         self.mcp_sessions = {}
 
         match = (
-            re.match(
+            re.prefixmatch(
                 r"^\s*([a-zA-Z0-9-]+)", environ.get("HTTP_ACCEPT_LANGUAGE", "en-US")
             )
             if environ
