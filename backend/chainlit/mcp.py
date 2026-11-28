@@ -1,4 +1,5 @@
-from typing import Callable, Dict, Literal, Optional, Union
+from collections.abc import Callable
+from typing import Literal
 from urllib.parse import unquote, urlparse
 
 import httpx
@@ -15,18 +16,18 @@ class StdioMcpConnection(BaseModel):
 class SseMcpConnection(BaseModel):
     name: str
     url: str
-    headers: Optional[Dict[str, str]] = None
+    headers: dict[str, str] | None = None
     clientType: Literal["sse"] = "sse"
 
 
 class HttpMcpConnection(BaseModel):
     name: str
     url: str
-    headers: Optional[Dict[str, str]] = None
+    headers: dict[str, str] | None = None
     clientType: Literal["streamable-http"] = "streamable-http"
 
 
-McpConnection = Union[StdioMcpConnection, SseMcpConnection, HttpMcpConnection]
+McpConnection = StdioMcpConnection | SseMcpConnection | HttpMcpConnection
 
 # Headers that must never be forwarded from the browser to the MCP transport.
 #
@@ -178,8 +179,8 @@ def validate_mcp_url(url: str, allowed_urls: list[str]) -> None:
 
 
 def validate_mcp_headers(
-    headers: Optional[Dict[str, str]],
-) -> Optional[Dict[str, str]]:
+    headers: dict[str, str] | None,
+) -> dict[str, str] | None:
     """Strip restricted headers from a user-supplied headers dict.
 
     Returns a filtered copy (or None if no headers remain / input is None).
@@ -245,7 +246,7 @@ _MCP_CONNECT_TIMEOUT_HTTP = 30.0
 
 def make_mcp_http_client_factory(
     check_destination: Callable[[str], None],
-    on_blocked: Optional[Callable[[McpDestinationError], None]] = None,
+    on_blocked: Callable[[McpDestinationError], None] | None = None,
 ) -> McpHttpClientFactory:
     """Build the httpx client factory used by the SSE and streamable-http transports.
 
@@ -281,9 +282,9 @@ def make_mcp_http_client_factory(
     """
 
     def factory(
-        headers: Optional[Dict[str, str]] = None,
-        timeout: Optional[httpx.Timeout] = None,
-        auth: Optional[httpx.Auth] = None,
+        headers: dict[str, str] | None = None,
+        timeout: httpx.Timeout | None = None,
+        auth: httpx.Auth | None = None,
     ) -> httpx.AsyncClient:
         async def _check_request(request: httpx.Request) -> None:
             try:

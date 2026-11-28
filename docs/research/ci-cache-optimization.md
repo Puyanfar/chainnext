@@ -1,5 +1,10 @@
 # CI Cache Optimization Research
 
+> **Status (2.13.0):** Historical snapshot from upstream Chainlit. Current CI uses
+> Python 3.15 only, Cypress 16.3, pnpm 12.22, cypress-split sharding, and has no
+> `pnpm run buildUi` script. Check `.github/workflows/*.yaml` before applying any
+> recommendation below.
+
 > Last CI run analyzed: [#5989](https://github.com/Chainlit/chainlit/actions/runs/24017813922) on `feat/parallel-cypress` (2026-04-06, success, 13m 36s wall clock)
 
 ## Timing Findings
@@ -56,10 +61,10 @@ Note: On `feat/refactor-scripts`, the Hatch build hook is already bypassed — `
 
 | Tool                | Action                                                                            | Cache mechanism                                               | Status                                            |
 | ------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------- |
-| pnpm store          | `actions/setup-node@v6.3.0`                                                       | `cache: 'pnpm'`, `cache-dependency-path: '**/pnpm-lock.yaml'` | ✅ Working (30s installs on Ubuntu)               |
-| uv download cache   | `astral-sh/setup-uv@v8.0.0`                                                       | `enable-cache: true`                                          | ✅ Working (55s on Ubuntu), ⚠️ cache miss on 3.13 |
+| pnpm store          | `actions/setup-node@v7`                                                           | `cache: 'pnpm'`, `cache-dependency-path: '**/pnpm-lock.yaml'` | ✅ Working (30s installs on Ubuntu)               |
+| uv download cache   | `astral-sh/setup-uv@v10.4.0`                                                      | `enable-cache: true`                                          | ✅ Working (55s on Ubuntu), ⚠️ cache miss on 3.13 |
 | Cypress binary      | `cypress-io/github-action@v6` (run used v6 despite local file referencing v7.1.9) | Internal (built-in to the action)                             | ✅ Ubuntu (11s), ⚠️ Windows (90s)                 |
-| Python installation | `actions/setup-python@v6.2.0`                                                     | Built-in (pre-installed on runners)                           | ✅ Fast on Ubuntu                                 |
+| Python installation | `actions/setup-python@v7`                                                         | Built-in (pre-installed on runners)                           | ✅ Fast on Ubuntu                                 |
 | UI build output     | —                                                                                 | **Not cached**                                                | ❌ Rebuilt 14× per run                            |
 
 ---
@@ -218,7 +223,7 @@ jobs:
   build-ui:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/pnpm-node-install
       - uses: actions/cache@v4
         id: ui-cache

@@ -5,22 +5,25 @@ inputs:
   node-version:
     description: Node.js version
     required: true
-    default: 'lts/*'
+    default: '26.13.1'
 
 runs:
   using: composite
   steps:
-    - uses: pnpm/action-setup@v5.0.0
+    - uses: pnpm/action-setup@v6
       name: Install pnpm
       with:
         run_install: false
     - name: Use Node.js
-      uses: actions/setup-node@v6.3.0
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs.node-version }}
         registry-url: 'https://registry.npmjs.org'
         cache: 'pnpm'
         cache-dependency-path: '**/pnpm-lock.yaml'
+    - name: Install npm
+      run: npm install -g npm@12.2.3
+      shell: bash
     - name: Install JS dependencies
       run: pnpm install
       shell: bash

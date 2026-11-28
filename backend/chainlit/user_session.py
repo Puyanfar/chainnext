@@ -1,8 +1,9 @@
-from typing import Callable, Dict, Generic, Optional, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 from chainlit.context import context
 
-user_sessions: Dict[str, Dict] = {}
+user_sessions: dict[str, dict] = {}
 
 T = TypeVar("T")
 
@@ -44,8 +45,8 @@ class UserSession:
         user_session[key] = value
 
     def create_accessor(
-        self, key: str, default: T, *, apply_fn: Optional[Callable[[T], T]] = None
-    ) -> "SessionAccessor[T]":
+        self, key: str, default: T, *, apply_fn: Callable[[T], T] | None = None
+    ) -> SessionAccessor[T]:
         """
         Create a typed session accessor object for the given key and default value.
 
@@ -57,7 +58,7 @@ class UserSession:
             The session dictionary key to store the value under
         default : T
             Default value to return when key is not present in session
-        apply_fn : Optional[Callable[[T], T]], default None
+        apply_fn : Callable[[T], T] | None, default None
             Optional function to transform the value when apply() is called
 
         Returns
@@ -89,7 +90,7 @@ class UserSession:
 user_session = UserSession()
 
 
-class SessionAccessor(Generic[T]):
+class SessionAccessor[T]:
     """
     Extended session accessor class to store user specific data between calls with type safety.
 
@@ -116,7 +117,7 @@ class SessionAccessor(Generic[T]):
     """
 
     def __init__(
-        self, key: str, default: T, *, apply_fn: Optional[Callable[[T], T]] = None
+        self, key: str, default: T, *, apply_fn: Callable[[T], T] | None = None
     ):
         self._key = key
         self._default = default

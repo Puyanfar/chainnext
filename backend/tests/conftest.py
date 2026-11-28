@@ -1,7 +1,7 @@
-import datetime
+import datetime as dt
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Callable
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -20,7 +20,7 @@ from chainlit.user_session import UserSession
 def persisted_test_user():
     return PersistedUser(
         id="test_user_id",
-        createdAt=datetime.datetime.now().isoformat(),
+        createdAt=dt.datetime.now().isoformat(),
         identifier="test_user_identifier",
     )
 

@@ -1,5 +1,8 @@
 # CI Cache Optimization P2 Implementation Plan
 
+> **Status:** Historical. Current versions are pnpm 12.22 and TypeScript 5.9;
+> verify the current workflows before applying this plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the frontend artifact that CI still duplicates today exactly once per commit and restore it in downstream jobs, cutting repeated `@chainlit/react-client` builds from the `check-frontend` matrix.
@@ -50,7 +53,7 @@ build-react-client:
   name: Build @chainlit/react-client once
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: ./.github/actions/pnpm-node-install
       name: Install Node, pnpm and dependencies.
     - name: Cache @chainlit/react-client dist

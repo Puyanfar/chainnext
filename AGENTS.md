@@ -31,10 +31,10 @@ When documenting or writing examples, use `pip install chainnext` and `import ch
 
 ## Prerequisites
 
-- Python: **3.13** (3.10+ is the framework's minimum, but development targets 3.13)
-- Node.js: **24+**
+- Python: **3.15.2+** (3.15.2 is the framework's minimum; lower versions are no longer supported)
+- Node.js: **26.13.1+** (see `.nvmrc`), npm **12.2.3+**
 - [uv](https://docs.astral.sh/uv/) — Python package manager
-- [pnpm 9](https://pnpm.io/) — Node.js package manager (Corepack)
+- [pnpm 12](https://pnpm.io/) — Node.js package manager (version pinned in `packageManager`; settings and overrides live in `pnpm-workspace.yaml`)
 
 ## Quick Start
 
@@ -62,25 +62,32 @@ When documenting or writing examples, use `pip install chainnext` and `import ch
 
 ### Tests
 
-|                       | Command                            | Directory   |
-| --------------------- | ---------------------------------- | ----------- |
-| Backend (all)         | `uv run pytest --cov=chainlit/`    | `backend/`  |
-| Backend (single file) | `uv run pytest tests/test_file.py` | `backend/`  |
-| Frontend unit         | `pnpm test`                        | `frontend/` |
-| E2E (Cypress)         | `pnpm test`                        | repo root   |
+|                       | Command                             | Directory  |
+| --------------------- | ----------------------------------- | ---------- |
+| Backend (all)         | `uv run pytest --cov=chainlit/`     | `backend/` |
+| Backend (single file) | `uv run pytest tests/test_file.py`  | `backend/` |
+| All JS unit tests     | `pnpm test`                         | repo root  |
+| Frontend unit only    | `pnpm --dir frontend test`          | repo root  |
+| React client unit     | `pnpm --dir libs/react-client test` | repo root  |
+| E2E (Cypress)         | `pnpm test:e2e`                     | repo root  |
+
+Cypress defaults to Chrome. If Chrome is not installed, run
+`pnpm test:e2e --browser chromium`. Root `pnpm test` runs the JS unit tests,
+not Cypress.
 
 ### Lint & Format
 
-|                     | Command                            | Directory |
-| ------------------- | ---------------------------------- | --------- |
-| Lint JS/TS          | `pnpm lint`                        | repo root |
-| Lint fix JS/TS      | `pnpm lint:fix`                    | repo root |
-| Format check JS/TS  | `pnpm format-check`                | repo root |
-| Format fix JS/TS    | `pnpm format`                      | repo root |
-| Lint Python         | `uv run scripts/lint.py`           | repo root |
-| Lint fix Python     | `uv run scripts/lint.py --fix`     | repo root |
-| Format check Python | `uv run scripts/format.py --check` | repo root |
-| Format fix Python   | `uv run scripts/format.py`         | repo root |
+|                      | Command                            | Directory |
+| -------------------- | ---------------------------------- | --------- |
+| Lint JS/TS           | `pnpm lint`                        | repo root |
+| Lint fix JS/TS       | `pnpm lint:fix`                    | repo root |
+| Format check JS/TS   | `pnpm format-check`                | repo root |
+| Format fix JS/TS     | `pnpm format`                      | repo root |
+| Check pnpm overrides | `pnpm check-overrides`             | repo root |
+| Lint Python          | `uv run scripts/lint.py`           | repo root |
+| Lint fix Python      | `uv run scripts/lint.py --fix`     | repo root |
+| Format check Python  | `uv run scripts/format.py --check` | repo root |
+| Format fix Python    | `uv run scripts/format.py`         | repo root |
 
 JS/TS lint and format commands accept file/directory arguments: `pnpm lint frontend/`, `pnpm format-check:files frontend/src/App.tsx`. Python scripts also accept file arguments: `uv run scripts/lint.py backend/chainlit/server.py`.
 
@@ -117,13 +124,13 @@ Examples:
 
 | Layer                          | Stack                                                                                                                     |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| **Frontend**                   | React 18, TypeScript 5.2, Vite 5, Tailwind CSS 3, Vitest, Zod 3                                                           |
-| **Frontend (state & routing)** | Recoil, React Router 6, react-hook-form, socket.io-client, SWR                                                            |
+| **Frontend**                   | React 18, TypeScript 5.9, Vite 6, Tailwind CSS 3, Vitest 4, Zod 4                                                         |
+| **Frontend (state & routing)** | Recoil, React Router 7, react-hook-form, socket.io-client, SWR                                                            |
 | **Frontend (rendering)**       | react-markdown + remark-gfm/math + rehype-katex/raw, highlight.js, lucide-react (icons), Radix UI (primitives), Plotly.js |
-| **Backend**                    | Python 3.13, FastAPI, Starlette, Uvicorn, python-socketio, Pydantic 2, PyJWT, httpx                                       |
+| **Backend**                    | Python 3.15.2+, FastAPI 0.165, Starlette 1.10, Uvicorn 0.54, python-socketio 5.18, Pydantic 2.14, PyJWT 2.15, httpx 0.28  |
 | **LLM integrations**           | MCP, LangChain, LlamaIndex, OpenAI SDK, Semantic Kernel, MistralAI                                                        |
 | **Infra / persistence**        | SQLAlchemy (PostgreSQL/SQLite), DynamoDB + S3 (boto3), Azure Blob / Data Lake, Google Cloud Storage, LiteralAI            |
-| **DX**                         | pre-commit hooks, linting, formatting, type checking, unit testing, E2E testing                                           |
+| **DX**                         | pnpm 12.22 with overrides, ESLint 10, Prettier 3.10, Cypress 16, linting, formatting, type checking, unit/E2E testing     |
 
 ## Architecture
 
@@ -160,6 +167,8 @@ The pnpm workspace includes `frontend/`, `libs/react-client/`, and `libs/copilot
 **Data layer pattern**: The data layer is optional (no persistence by default). Register a custom implementation with `@cl.data_layer` decorator or use the built-in SQLAlchemy/DynamoDB/LiteralAI implementations. The `@queue_until_user_message()` decorator on `BaseDataLayer` methods queues write operations until the first user message arrives.
 
 **Integrations**: `langchain/`, `llama_index/`, `openai/`, `semantic_kernel/`, `mistralai/` — each provides callback handlers that bridge those frameworks into Chainlit steps/messages.
+
+> **Semantic Kernel is disabled**: `cl.SemanticKernelFilter` is in the source but the `semantic-kernel` dependency is not installed, because the latest release (1.47.0) requires `pydantic<2.14`, which conflicts with our `pydantic>=2.14.4`. Importing/using `cl.SemanticKernelFilter` raises `ImportError` until a compatible release lands. See [docs/semantic-kernel.md](docs/semantic-kernel.md).
 
 ### Frontend (`frontend/src/`)
 

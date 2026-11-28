@@ -1,9 +1,9 @@
-import datetime
+import datetime as dt
 import logging
 import os
 import pathlib
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 from unittest.mock import AsyncMock, Mock, create_autospec, mock_open
 
 import pytest
@@ -422,7 +422,7 @@ def test_file_access_by_different_user(
         id="another_session_id",
         user=PersistedUser(
             id="another_user_id",
-            createdAt=datetime.datetime.now().isoformat(),
+            createdAt=dt.datetime.now().isoformat(),
             identifier="another_user_identifier",
         ),
     )
@@ -1094,7 +1094,7 @@ def test_share_thread_endpoint_sets_flags(
 
     author = PersistedUser(
         id="u1",
-        createdAt=datetime.datetime.now().isoformat(),
+        createdAt=dt.datetime.now().isoformat(),
         identifier="author",
     )
 
@@ -1229,9 +1229,9 @@ def test_oauth_callback_get_token_error_redirects(
     """get_token exception → redirect instead of 500 (regression for #1273)."""
     test_config.code.oauth_callback = AsyncMock()
     mock_oauth_provider.get_token = AsyncMock(side_effect=Exception("provider down"))
+    test_client.cookies.set("oauth_state", "valid_state")
     response = test_client.get(
         "/auth/oauth/github/callback?code=fake_code&state=valid_state",
-        cookies={"oauth_state": "valid_state"},
         follow_redirects=False,
     )
     assert response.status_code == 302
@@ -1245,9 +1245,9 @@ def test_oauth_callback_none_user_redirects(
 ):
     """oauth_callback returns None → redirect instead of 401 JSON (regression for #1273)."""
     test_config.code.oauth_callback = AsyncMock(return_value=None)
+    test_client.cookies.set("oauth_state", "valid_state")
     response = test_client.get(
         "/auth/oauth/github/callback?code=fake_code&state=valid_state",
-        cookies={"oauth_state": "valid_state"},
         follow_redirects=False,
     )
     assert response.status_code == 302
@@ -1328,3 +1328,44 @@ def test_oauth_azure_hf_callback_none_user_redirects(
     )
     assert response.status_code == 303
     assert "error=oauthSignin" in response.headers["location"]
+
+
+@pytest.mark.parametrize("prefix", ["", "/foo"])
+def test_move_spa_fallback_to_end_preserves_route_priority(prefix: str):
+    """The SPA fallback must be evaluated after routes registered later."""
+    from fastapi import APIRouter, FastAPI
+    from fastapi.responses import HTMLResponse
+    from fastapi.routing import APIRoute
+
+    from chainlit.server import _move_spa_fallback_to_end
+
+    router = APIRouter(prefix=prefix)
+
+    @router.get("/{full_path:path}")
+    async def serve(full_path: str):
+        return HTMLResponse(f"spa:{full_path}")
+
+    @router.get("/health")
+    async def health():
+        return {"status": "ok"}
+
+    app = FastAPI()
+    app.include_router(router)
+
+    # Registered after include_router, like custom auth routes in user apps.
+    @app.get(f"{prefix}/custom")
+    async def custom():
+        return {"custom": True}
+
+    spa_route = next(
+        route for route in router.routes if getattr(route, "endpoint", None) is serve
+    )
+    assert isinstance(spa_route, APIRoute)
+
+    assert _move_spa_fallback_to_end(app, router, spa_route) is True
+    assert _move_spa_fallback_to_end(app, router, spa_route) is False
+
+    client = TestClient(app)
+    assert client.get(f"{prefix}/custom").json() == {"custom": True}
+    assert client.get(f"{prefix}/health").json() == {"status": "ok"}
+    assert client.get(f"{prefix}/deep/link").text == "spa:deep/link"

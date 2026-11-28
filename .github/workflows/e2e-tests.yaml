@@ -43,7 +43,7 @@ jobs:
       BACKEND_DIR: ./backend
       CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cypress-cache
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       # Disable automatic Cypress binary installation on Windows.
       - name: Configure Cypress installation (Windows)
         if: runner.os == 'Windows'

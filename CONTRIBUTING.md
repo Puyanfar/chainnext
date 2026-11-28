@@ -4,6 +4,8 @@ To contribute to Chainnext, you first need to set up the project on your local m
 
 Chainnext is published on PyPI as **`chainnext`**. The Python import, CLI, and config paths remain **`chainlit`** (`import chainlit`, `chainlit run`, `.chainlit/config.toml`) so existing apps keep working. See [Names: PyPI vs import vs CLI](README.md#names-pypi-vs-import-vs-cli) in the README.
 
+> **Contribution policy:** We currently accept pull requests only for bug fixes and security vulnerabilities. Pull requests that introduce new features are not reviewed or merged. If you would like to propose a feature, please open an issue to discuss it first.
+
 ## Table of Contents
 
 <!--
@@ -29,9 +31,9 @@ I've copy/pasted the whole document there, and then formatted it with prettier.
 
 ### Requirements
 
-1. Python >= `3.10`
+1. Python >= `3.15.2`
 2. uv ([See how to install](https://docs.astral.sh/uv/getting-started/installation/))
-3. NodeJS >= `24` ([See how to install](https://nodejs.org/en/download))
+3. NodeJS >= `26.13.1` (see `.nvmrc`), npm >= `12.2.3` and pnpm `12.22.0` ([See how to install](https://nodejs.org/en/download))
 4. Pnpm ([See how to install](https://pnpm.io/installation))
 
 > **Note**
@@ -122,6 +124,9 @@ pnpm format-check
 # Fix formatting
 pnpm format
 
+# Verify pnpm overrides against all four lockfiles (CI uses this)
+pnpm check-overrides
+
 # Type check (TypeScript)
 pnpm type-check
 
@@ -157,15 +162,24 @@ uv run pytest --cov=chainlit
 
 ### Frontend unit tests
 
-This will run the frontend's unit tests.
+Run all JS unit tests from the repo root:
 
-```
+```sh
 pnpm test
+```
+
+To run a single workspace package:
+
+```sh
+pnpm --dir frontend test
+pnpm --dir libs/react-client test
 ```
 
 ### E2E tests
 
 You may need additional configuration or dependency installation to run Cypress. See the [Cypress system requirements](https://docs.cypress.io/app/get-started/install-cypress#System-requirements) for details.
+
+The Cypress config defaults to Chrome. If Chrome is not installed, pass `--browser chromium` (for example, `pnpm test:e2e --browser chromium`).
 
 This will run end to end tests, assessing both the frontend, the backend and their interaction. First install cypress with `pnpm exec cypress install`, and then run:
 

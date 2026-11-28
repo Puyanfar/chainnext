@@ -1,5 +1,6 @@
 import inspect
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Union, overload
+from collections.abc import Awaitable, Callable
+from typing import Any, overload
 
 from fastapi import Request, Response
 from mcp import ClientSession
@@ -18,14 +19,14 @@ from chainlit.user import User
 from chainlit.utils import wrap_user_function
 
 
-def on_app_startup(func: Callable[[], Union[None, Awaitable[None]]]) -> Callable:
+def on_app_startup(func: Callable[[], Awaitable[None] | None]) -> Callable:
     """
     Hook to run code when the Chainlit application starts.
     Useful for initializing resources, loading models, setting up database connections, etc.
     The function can be synchronous or asynchronous.
 
     Args:
-        func (Callable[[], Union[None, Awaitable[None]]]): The startup hook to execute. Takes no arguments.
+        func (Callable[[], None | Awaitable[None]]): The startup hook to execute. Takes no arguments.
 
     Example:
         @cl.on_app_startup
@@ -34,20 +35,20 @@ def on_app_startup(func: Callable[[], Union[None, Awaitable[None]]]) -> Callable
             # Initialize resources here
 
     Returns:
-        Callable[[], Union[None, Awaitable[None]]]: The decorated startup hook.
+        Callable[[], None | Awaitable[None]]: The decorated startup hook.
     """
     config.code.on_app_startup = wrap_user_function(func, with_task=False)
     return func
 
 
-def on_app_shutdown(func: Callable[[], Union[None, Awaitable[None]]]) -> Callable:
+def on_app_shutdown(func: Callable[[], Awaitable[None] | None]) -> Callable:
     """
     Hook to run code when the Chainlit application shuts down.
     Useful for cleaning up resources, closing connections, saving state, etc.
     The function can be synchronous or asynchronous.
 
     Args:
-        func (Callable[[], Union[None, Awaitable[None]]]): The shutdown hook to execute. Takes no arguments.
+        func (Callable[[], None | Awaitable[None]]): The shutdown hook to execute. Takes no arguments.
 
     Example:
         @cl.on_app_shutdown
@@ -56,27 +57,27 @@ def on_app_shutdown(func: Callable[[], Union[None, Awaitable[None]]]) -> Callabl
             # Clean up resources here
 
     Returns:
-        Callable[[], Union[None, Awaitable[None]]]: The decorated shutdown hook.
+        Callable[[], None | Awaitable[None]]: The decorated shutdown hook.
     """
     config.code.on_app_shutdown = wrap_user_function(func, with_task=False)
     return func
 
 
 def password_auth_callback(
-    func: Callable[[str, str], Awaitable[Optional[User]]],
+    func: Callable[[str, str], Awaitable[User | None]],
 ) -> Callable:
     """
     Framework agnostic decorator to authenticate the user.
 
     Args:
-        func (Callable[[str, str], Awaitable[Optional[User]]]): The authentication callback to execute. Takes the email and password as parameters.
+        func (Callable[[str, str], Awaitable[User | None]]): The authentication callback to execute. Takes the email and password as parameters.
 
     Example:
         @cl.password_auth_callback
-        async def password_auth_callback(username: str, password: str) -> Optional[User]:
+        async def password_auth_callback(username: str, password: str) -> User | None:
 
     Returns:
-        Callable[[str, str], Awaitable[Optional[User]]]: The decorated authentication callback.
+        Callable[[str, str], Awaitable[User | None]]: The decorated authentication callback.
     """
 
     config.code.password_auth_callback = wrap_user_function(func)
@@ -84,20 +85,20 @@ def password_auth_callback(
 
 
 def header_auth_callback(
-    func: Callable[[Headers], Awaitable[Optional[User]]],
+    func: Callable[[Headers], Awaitable[User | None]],
 ) -> Callable:
     """
     Framework agnostic decorator to authenticate the user via a header
 
     Args:
-        func (Callable[[Headers], Awaitable[Optional[User]]]): The authentication callback to execute.
+        func (Callable[[Headers], Awaitable[User | None]]): The authentication callback to execute.
 
     Example:
         @cl.header_auth_callback
-        async def header_auth_callback(headers: Headers) -> Optional[User]:
+        async def header_auth_callback(headers: Headers) -> User | None:
 
     Returns:
-        Callable[[Headers], Awaitable[Optional[User]]]: The decorated authentication callback.
+        Callable[[Headers], Awaitable[User | None]]: The decorated authentication callback.
     """
 
     config.code.header_auth_callback = wrap_user_function(func)
@@ -106,21 +107,21 @@ def header_auth_callback(
 
 def oauth_callback(
     func: Callable[
-        [str, str, Dict[str, str], User, Optional[str]], Awaitable[Optional[User]]
+        [str, str, dict[str, str], User, str | None], Awaitable[User | None]
     ],
 ) -> Callable:
     """
     Framework agnostic decorator to authenticate the user via oauth
 
     Args:
-        func (Callable[[str, str, Dict[str, str], User, Optional[str]], Awaitable[Optional[User]]]): The authentication callback to execute.
+        func (Callable[[str, str, dict[str, str], User, str | None], Awaitable[User | None]]): The authentication callback to execute.
 
     Example:
         @cl.oauth_callback
-        async def oauth_callback(provider_id: str, token: str, raw_user_data: Dict[str, str], default_app_user: User, id_token: Optional[str]) -> Optional[User]:
+        async def oauth_callback(provider_id: str, token: str, raw_user_data: dict[str, str], default_app_user: User, id_token: str | None) -> User | None:
 
     Returns:
-        Callable[[str, str, Dict[str, str], User, Optional[str]], Awaitable[Optional[User]]]: The decorated authentication callback.
+        Callable[[str, str, dict[str, str], User, str | None], Awaitable[User | None]]: The decorated authentication callback.
     """
 
     if len(get_configured_oauth_providers()) == 0:
@@ -225,14 +226,14 @@ def on_chat_resume(func: Callable[[ThreadDict], Any]) -> Callable:
 
 @overload
 def set_chat_profiles(
-    func: Callable[[Optional["User"]], Awaitable[List["ChatProfile"]]],
-) -> Callable[[Optional["User"]], Awaitable[List["ChatProfile"]]]: ...
+    func: Callable[[User | None], Awaitable[list[ChatProfile]]],
+) -> Callable[[User | None], Awaitable[list[ChatProfile]]]: ...
 
 
 @overload
 def set_chat_profiles(
-    func: Callable[[Optional["User"], Optional["str"]], Awaitable[List["ChatProfile"]]],
-) -> Callable[[Optional["User"], Optional["str"]], Awaitable[List["ChatProfile"]]]: ...
+    func: Callable[[User | None, str | None], Awaitable[list[ChatProfile]]],
+) -> Callable[[User | None, str | None], Awaitable[list[ChatProfile]]]: ...
 
 
 def set_chat_profiles(func):
@@ -240,10 +241,10 @@ def set_chat_profiles(func):
     Programmatic declaration of the available chat profiles (can depend on the User from the session if authentication is setup).
 
     Args:
-        func (Callable[[Optional["User"]], Awaitable[List["ChatProfile"]]]): The function declaring the chat profiles.
+        func (Callable[[User | None], Awaitable[list["ChatProfile"]]]): The function declaring the chat profiles.
 
     Returns:
-        Callable[[Optional["User"]], Awaitable[List["ChatProfile"]]]: The decorated function.
+        Callable[[User | None], Awaitable[list["ChatProfile"]]]: The decorated function.
     """
 
     config.code.set_chat_profiles = wrap_user_function(func)
@@ -252,14 +253,14 @@ def set_chat_profiles(func):
 
 @overload
 def set_starters(
-    func: Callable[[Optional["User"]], Awaitable[List["Starter"]]],
-) -> Callable[[Optional["User"]], Awaitable[List["Starter"]]]: ...
+    func: Callable[[User | None], Awaitable[list[Starter]]],
+) -> Callable[[User | None], Awaitable[list[Starter]]]: ...
 
 
 @overload
 def set_starters(
-    func: Callable[[Optional["User"], Optional["str"]], Awaitable[List["Starter"]]],
-) -> Callable[[Optional["User"], Optional["str"]], Awaitable[List["Starter"]]]: ...
+    func: Callable[[User | None, str | None], Awaitable[list[Starter]]],
+) -> Callable[[User | None, str | None], Awaitable[list[Starter]]]: ...
 
 
 def set_starters(func):
@@ -267,10 +268,10 @@ def set_starters(func):
     Programmatic declaration of the available starter (can depend on the User from the session if authentication is setup).
 
     Args:
-        func (Callable[[Optional["User"], Optional["str"]], Awaitable[List["Starter"]]]): The function declaring the starters with optional user and language arguments.
+        func (Callable[[User | None, str | None], Awaitable[list["Starter"]]]): The function declaring the starters with optional user and language arguments.
 
     Returns:
-        Callable[[Optional["User"], Optional["str"]], Awaitable[List["Starter"]]]: The decorated function.
+        Callable[[User | None, str | None], Awaitable[list["Starter"]]]: The decorated function.
     """
 
     config.code.set_starters = wrap_user_function(func)
@@ -279,29 +280,25 @@ def set_starters(func):
 
 @overload
 def set_starter_categories(
-    func: Callable[[Optional["User"]], Awaitable[List["StarterCategory"]]],
-) -> Callable[[Optional["User"]], Awaitable[List["StarterCategory"]]]: ...
+    func: Callable[[User | None], Awaitable[list[StarterCategory]]],
+) -> Callable[[User | None], Awaitable[list[StarterCategory]]]: ...
+
+
+@overload
+def set_starter_categories(
+    func: Callable[[User | None, str | None], Awaitable[list[StarterCategory]]],
+) -> Callable[[User | None, str | None], Awaitable[list[StarterCategory]]]: ...
 
 
 @overload
 def set_starter_categories(
     func: Callable[
-        [Optional["User"], Optional["str"]], Awaitable[List["StarterCategory"]]
+        [User | None, str | None, str | None],
+        Awaitable[list[StarterCategory]],
     ],
 ) -> Callable[
-    [Optional["User"], Optional["str"]], Awaitable[List["StarterCategory"]]
-]: ...
-
-
-@overload
-def set_starter_categories(
-    func: Callable[
-        [Optional["User"], Optional["str"], Optional["str"]],
-        Awaitable[List["StarterCategory"]],
-    ],
-) -> Callable[
-    [Optional["User"], Optional["str"], Optional["str"]],
-    Awaitable[List["StarterCategory"]],
+    [User | None, str | None, str | None],
+    Awaitable[list[StarterCategory]],
 ]: ...
 
 
@@ -310,10 +307,10 @@ def set_starter_categories(func):
     Programmatic declaration of starter categories with grouped starters.
 
     Args:
-        func (Callable[[Optional["User"], Optional["str"], Optional["str"]], Awaitable[List["StarterCategory"]]]): The function declaring the starter categories with optional user, language, and chat profile arguments.
+        func (Callable[[User | None, str | None, str | None], Awaitable[list["StarterCategory"]]]): The function declaring the starter categories with optional user, language, and chat profile arguments.
 
     Returns:
-        Callable[[Optional["User"], Optional["str"], Optional["str"]], Awaitable[List["StarterCategory"]]]: The decorated function.
+        Callable[[User | None, str | None, str | None], Awaitable[list["StarterCategory"]]]: The decorated function.
     """
 
     config.code.set_starter_categories = wrap_user_function(func)
@@ -445,8 +442,8 @@ def action_callback(name: str) -> Callable:
 
 
 def on_settings_update(
-    func: Callable[[Dict[str, Any]], Any],
-) -> Callable[[Dict[str, Any]], Any]:
+    func: Callable[[dict[str, Any]], Any],
+) -> Callable[[dict[str, Any]], Any]:
     """
     Hook to react to the user changing any settings.
 
@@ -462,8 +459,8 @@ def on_settings_update(
 
 
 def on_settings_edit(
-    func: Callable[[Dict[str, Any]], Any],
-) -> Callable[[Dict[str, Any]], Any]:
+    func: Callable[[dict[str, Any]], Any],
+) -> Callable[[dict[str, Any]], Any]:
     """
     Hook to react to the user editing any settings (on the fly).
 
@@ -513,13 +510,13 @@ def on_feedback(func: Callable) -> Callable:
     return func
 
 
-def on_slack_reaction_added(func: Callable[[Dict[str, Any]], Any]) -> Callable:
+def on_slack_reaction_added(func: Callable[[dict[str, Any]], Any]) -> Callable:
     """
     Hook to react to Slack reaction_added events.
     The decorated function is called every time a user adds a reaction to a message in Slack.
 
     Args:
-        func (Callable[[Dict[str, Any]], Any]): The function to be called when a reaction is added.
+        func (Callable[[dict[str, Any]], Any]): The function to be called when a reaction is added.
             Takes a Slack event dictionary containing:
             - reaction: The emoji reaction name (e.g., "thumbsup")
             - user: The user ID who added the reaction
@@ -527,27 +524,27 @@ def on_slack_reaction_added(func: Callable[[Dict[str, Any]], Any]) -> Callable:
 
     Example:
         @cl.on_slack_reaction_added
-        async def handle_reaction(event: Dict[str, Any]):
+        async def handle_reaction(event: dict[str, Any]):
             reaction = event.get("reaction")
             user_id = event.get("user")
             print(f"User {user_id} added reaction {reaction}")
             # Handle reaction here
 
     Returns:
-        Callable[[Dict[str, Any]], Any]: The decorated on_slack_reaction_added function.
+        Callable[[dict[str, Any]], Any]: The decorated on_slack_reaction_added function.
     """
     config.code.on_slack_reaction_added = wrap_user_function(func)
     return func
 
 
 def on_shared_thread_view(
-    func: Callable[[ThreadDict, Optional[User]], Awaitable[bool]],
-) -> Callable[[ThreadDict, Optional[User]], Awaitable[bool]]:
+    func: Callable[[ThreadDict, User | None], Awaitable[bool]],
+) -> Callable[[ThreadDict, User | None], Awaitable[bool]]:
     """Hook to authorize viewing a shared thread.
 
     Users must implement and return True to allow a non-author to view a thread.
     Thread metadata contains "is_shared" boolean flag and "shared_at" timestamp for custom thread sharing.
-    Signature: async (thread: ThreadDict, viewer: Optional[User]) -> bool
+    Signature: async (thread: ThreadDict, viewer: User | None) -> bool
     """
     config.code.on_shared_thread_view = wrap_user_function(func)
     return func

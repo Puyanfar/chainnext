@@ -10,7 +10,7 @@ import urllib.parse
 import webbrowser
 from contextlib import AsyncExitStack, asynccontextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Annotated, cast
 
 import socketio
 from fastapi import (
@@ -27,11 +27,11 @@ from fastapi import (
 )
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.routing import APIRoute
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.datastructures import URL
 from starlette.middleware.cors import CORSMiddleware
 from starlette.types import Receive, Scope, Send
-from typing_extensions import Annotated
 from watchfiles import awatch
 
 from chainlit.auth import create_jwt, decode_jwt, get_configuration, get_current_user
@@ -508,7 +508,7 @@ def _get_oauth_redirect_error(
 
 
 async def _authenticate_user(
-    request: Request, user: Optional[User], redirect_to_callback: bool = False
+    request: Request, user: User | None, redirect_to_callback: bool = False
 ) -> Response:
     """Authenticate a user and return the response."""
 
@@ -573,7 +573,7 @@ async def jwt_auth(request: Request):
     """Login a user using a valid jwt."""
     from jwt import InvalidTokenError
 
-    auth_header: Optional[str] = request.headers.get("Authorization")
+    auth_header: str | None = request.headers.get("Authorization")
     if not auth_header:
         raise HTTPException(status_code=401, detail="Authorization header missing")
 
@@ -650,9 +650,9 @@ async def oauth_login(provider_id: str, request: Request):
 async def oauth_callback(
     provider_id: str,
     request: Request,
-    error: Optional[str] = None,
-    code: Optional[str] = None,
-    state: Optional[str] = None,
+    error: str | None = None,
+    code: str | None = None,
+    state: str | None = None,
 ):
     """Handle the oauth callback and login the user."""
 
@@ -709,10 +709,10 @@ async def oauth_callback(
 @router.post("/auth/oauth/azure-ad-hybrid/callback")
 async def oauth_azure_hf_callback(
     request: Request,
-    error: Optional[str] = None,
-    form_error: Annotated[Optional[str], Form(alias="error")] = None,
-    code: Annotated[Optional[str], Form()] = None,
-    id_token: Annotated[Optional[str], Form()] = None,
+    error: str | None = None,
+    form_error: Annotated[str | None, Form(alias="error")] = None,
+    code: Annotated[str | None, Form()] = None,
+    id_token: Annotated[str | None, Form()] = None,
 ):
     """Handle the azure ad hybrid flow callback and login the user."""
 
@@ -764,7 +764,7 @@ async def oauth_azure_hf_callback(
     return response
 
 
-GenericUser = Union[User, PersistedUser, None]
+GenericUser = User | PersistedUser | None
 UserParam = Annotated[GenericUser, Depends(get_current_user)]
 
 
@@ -824,7 +824,7 @@ async def project_settings(
     language: str = Query(
         default="en-US", description="Language code", pattern=_language_pattern
     ),
-    chat_profile: Optional[str] = Query(
+    chat_profile: str | None = Query(
         default=None, description="Current chat profile name"
     ),
 ):
@@ -1162,7 +1162,7 @@ async def delete_thread_element(
     return {"success": True}
 
 
-def _sanitize_custom_element(element_dict: "ElementDict") -> "CustomElement":
+def _sanitize_custom_element(element_dict: ElementDict) -> CustomElement:
     from chainlit.element import CustomElement
 
     return CustomElement(
@@ -1328,7 +1328,7 @@ async def call_action(
 _ENV_FLAGS_WITH_ARG = {"-u", "--unset", "-C", "--chdir", "-S", "--split-string"}
 
 
-def _find_leading_env_assignment(parts: List[str]) -> Optional[str]:
+def _find_leading_env_assignment(parts: list[str]) -> str | None:
     """Return the first `KEY=value`-shaped token before the actual command in
     a shlex-split MCP stdio command, or None if there isn't one.
 
@@ -1507,7 +1507,7 @@ async def connect_mcp(
     is_user_provided = payload.url is not None
     # Only set for stdio named servers; merged into the spawn environment in
     # the background runner.
-    stdio_env: Optional[Dict[str, str]] = None
+    stdio_env: dict[str, str] | None = None
 
     try:
         if payload.url is None:
@@ -1631,7 +1631,7 @@ async def connect_mcp(
     # it (allowlist too broad) or fail conforming servers (origin too
     # narrow), so which check applies depends on whether this is a
     # user-provided or named connection.
-    mcp_http_client_factory: Optional[McpHttpClientFactory] = None
+    mcp_http_client_factory: McpHttpClientFactory | None = None
     if isinstance(mcp_connection, (SseMcpConnection, HttpMcpConnection)):
         if is_user_provided:
             mcp_http_client_factory = make_mcp_http_client_factory(
@@ -1755,10 +1755,10 @@ async def connect_mcp(
     )
     try:
         await asyncio.wait_for(ready_event.wait(), timeout=connect_timeout)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         pass
     if "error" not in result_holder and "client" not in result_holder:
-        result_holder["error"] = asyncio.TimeoutError(
+        result_holder["error"] = TimeoutError(
             f"Timed out after {connect_timeout:.0f}s waiting for the MCP "
             "connection to initialize."
         )
@@ -1876,7 +1876,7 @@ async def connect_mcp(
     # libs/react-client/src/types/mcp.ts declares both as optional, not
     # nullable, so the field that doesn't apply is omitted rather than sent
     # as null.
-    mcp_payload: Dict[str, object] = {
+    mcp_payload: dict[str, object] = {
         "name": mcp_connection.name,
         "tools": [{"name": t.name} for t in tool_list.tools],
         "isUserProvided": is_user_provided,
@@ -1943,7 +1943,7 @@ async def upload_file(
     current_user: UserParam,
     session_id: str,
     file: UploadFile,
-    ask_parent_id: Optional[str] = None,
+    ask_parent_id: str | None = None,
 ):
     """Upload a file to the session files directory."""
 
@@ -1993,7 +1993,7 @@ async def upload_file(
         await file.close()
 
 
-def validate_file_upload(file: UploadFile, spec: Optional[AskFileSpec] = None):
+def validate_file_upload(file: UploadFile, spec: AskFileSpec | None = None):
     """Validate the file upload as configured in config.features.spontaneous_file_upload or by AskFileSpec
     for a specific message.
 
@@ -2014,7 +2014,7 @@ def validate_file_upload(file: UploadFile, spec: Optional[AskFileSpec] = None):
     validate_file_size(file, spec)
 
 
-def validate_file_mime_type(file: UploadFile, spec: Optional[AskFileSpec]):
+def validate_file_mime_type(file: UploadFile, spec: AskFileSpec | None):
     """Validate the file mime type as configured in config.features.spontaneous_file_upload.
     Args:
         file (UploadFile): The file to validate.
@@ -2031,11 +2031,11 @@ def validate_file_mime_type(file: UploadFile, spec: Optional[AskFileSpec]):
 
     accept = config.features.spontaneous_file_upload.accept if not spec else spec.accept
 
-    assert isinstance(accept, List) or isinstance(accept, dict), (
+    assert isinstance(accept, list) or isinstance(accept, dict), (
         "Invalid configuration for spontaneous_file_upload, accept must be a list or a dict"
     )
 
-    if isinstance(accept, List):
+    if isinstance(accept, list):
         for pattern in accept:
             if fnmatch.fnmatch(str(file.content_type), pattern):
                 return
@@ -2052,7 +2052,7 @@ def validate_file_mime_type(file: UploadFile, spec: Optional[AskFileSpec]):
     raise ValueError("File type not allowed")
 
 
-def validate_file_size(file: UploadFile, spec: Optional[AskFileSpec]):
+def validate_file_size(file: UploadFile, spec: AskFileSpec | None):
     """Validate the file size as configured in config.features.spontaneous_file_upload.
     Args:
         file (UploadFile): The file to validate.
@@ -2122,7 +2122,7 @@ async def get_favicon():
 
 
 @router.get("/logo")
-async def get_logo(theme: Optional[Theme] = Query(Theme.light)):
+async def get_logo(theme: Theme | None = Query(Theme.light)):
     """Get the default logo for the UI."""
     theme_value = theme.value if theme else Theme.light.value
     logo_path = None
@@ -2154,7 +2154,7 @@ async def get_logo(theme: Optional[Theme] = Query(Theme.light)):
 @router.get("/avatars/{avatar_id:str}")
 async def get_avatar(avatar_id: str):
     """Get the avatar for the user based on the avatar_id."""
-    if not re.match(r"^[a-zA-Z0-9_ .-]+$", avatar_id):
+    if not re.prefixmatch(r"^[a-zA-Z0-9_ .-]+$", avatar_id):
         raise HTTPException(status_code=400, detail="Invalid avatar_id")
 
     if avatar_id == "default":
@@ -2189,7 +2189,10 @@ def health_check():
     return {"status": "ok"}
 
 
-@router.get("/{full_path:path}")
+SPA_FALLBACK_PATH = "/{full_path:path}"
+
+
+@router.get(SPA_FALLBACK_PATH)
 async def serve(request: Request):
     """Serve the UI files."""
     root_path = os.getenv("CHAINLIT_PARENT_ROOT_PATH", "") + os.getenv(
@@ -2199,6 +2202,66 @@ async def serve(request: Request):
     response = HTMLResponse(content=html_template, status_code=200)
 
     return response
+
+
+# Captured once at import: the route's path already contains config.run.root_path
+# (APIRouter applies its prefix in add_api_route), so identify it by endpoint.
+SPA_FALLBACK_ROUTE: APIRoute | None = next(
+    (
+        cast(APIRoute, route)
+        for route in router.routes
+        if getattr(route, "endpoint", None) is serve
+    ),
+    None,
+)
+
+
+def _move_spa_fallback_to_end(
+    target_app: FastAPI, target_router: APIRouter, spa_route: APIRoute
+) -> bool:
+    """Move a single route to the end of the app's top-level route table."""
+    if spa_route not in target_router.routes:
+        return False
+
+    target_router.routes.remove(spa_route)
+
+    # The moved APIRoute keeps its already-prefixed path, so a plain router is
+    # enough to preserve the served URL (including --root-path deployments).
+    spa_router = APIRouter()
+    spa_router.routes.append(spa_route)
+    target_app.include_router(spa_router)
+
+    # Direct list mutation does not bump FastAPI's route version. Invalidate
+    # cached effective candidates in case this runs after a request.
+    mark_routes_changed = getattr(target_router, "_mark_routes_changed", None)
+    if callable(mark_routes_changed):
+        mark_routes_changed()
+    return True
+
+
+def ensure_spa_fallback_last() -> bool:
+    """Make the SPA fallback match after routes registered later.
+
+    FastAPI >= 0.137 keeps included routers in ``app.routes`` as a tree, so
+    moving the flattened ``APIRoute`` (the pre-0.137 workaround) no longer
+    works. Call this after registering your own routes on
+    ``chainlit.server.app``::
+
+        @app.get("/auth/custom")
+        async def custom_auth(...): ...
+
+        ensure_spa_fallback_last()
+
+    Only the SPA fallback is moved to the end of the top-level route table;
+    every other Chainlit route keeps its original precedence. This is a no-op
+    if the fallback was already moved.
+
+    Call during startup, after declaring your routes and before serving
+    requests.
+    """
+    if SPA_FALLBACK_ROUTE is None:
+        return False
+    return _move_spa_fallback_to_end(app, router, SPA_FALLBACK_ROUTE)
 
 
 app.include_router(router)

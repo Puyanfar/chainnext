@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Union
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from azure.storage.blob import BlobSasPermissions, ContentSettings, generate_blob_sas
 from azure.storage.blob.aio import BlobServiceClient as AsyncBlobServiceClient
@@ -32,7 +32,7 @@ class AzureBlobStorageClient(BaseStorageClient):
             raise Exception("Not using Azure Storage")
 
         sas_permissions = BlobSasPermissions(read=True)
-        start_time = datetime.now(tz=timezone.utc)
+        start_time = datetime.now(tz=UTC)
         expiry_time = start_time + timedelta(seconds=storage_expiry_time)
 
         sas_token = generate_blob_sas(
@@ -50,11 +50,11 @@ class AzureBlobStorageClient(BaseStorageClient):
     async def upload_file(
         self,
         object_key: str,
-        data: Union[bytes, str],
+        data: bytes | str,
         mime: str = "application/octet-stream",
         overwrite: bool = True,
         content_disposition: str | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         try:
             blob_client = self.container_client.get_blob_client(object_key)
 

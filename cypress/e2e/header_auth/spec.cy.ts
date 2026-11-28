@@ -39,12 +39,13 @@ describe('Header auth', () => {
           () => true
         );
         expect(interception.response.statusCode).to.equal(200);
-
-        // Response contains `Authorization` cookie, starting with Bearer
-        expect(interception.response.headers).to.have.property('set-cookie');
-        const cookie = interception.response.headers['set-cookie'][0];
-        expect(cookie).to.contain('access_token');
       });
+      // Browser-agnostic: assert the cookie is actually stored.
+      // Chromium 157+ no longer exposes the Set-Cookie header line to the
+      // XHR/fetch interceptor, so checking the cookie jar instead.
+      cy.getCookie('access_token')
+        .should('exist')
+        .and('have.property', 'value');
     });
 
     shouldBeLoggedIn();

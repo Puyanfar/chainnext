@@ -3,8 +3,8 @@ import importlib
 import inspect
 import os
 from asyncio import CancelledError
-from datetime import datetime, timezone
-from typing import Callable
+from collections.abc import Callable
+from datetime import UTC, datetime
 
 import click
 from fastapi import FastAPI, Request
@@ -18,12 +18,12 @@ from chainlit.logger import logger
 
 
 def utc_now():
-    dt = datetime.now(timezone.utc).replace(tzinfo=None)
+    dt = datetime.now(UTC).replace(tzinfo=None)
     return dt.isoformat() + "Z"
 
 
 def timestamp_utc(timestamp: float):
-    dt = datetime.fromtimestamp(timestamp, timezone.utc).replace(tzinfo=None)
+    dt = datetime.fromtimestamp(timestamp, UTC).replace(tzinfo=None)
     return dt.isoformat() + "Z"
 
 

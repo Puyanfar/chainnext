@@ -5,7 +5,7 @@ from fastapi import Request, Response
 
 import chainlit as cl
 from chainlit.auth import create_jwt
-from chainlit.server import _authenticate_user, app
+from chainlit.server import _authenticate_user, app, ensure_spa_fallback_last
 from chainlit.user import User
 
 os.environ["CHAINLIT_AUTH_SECRET"] = "SUPER_SECRET"  # nosec B105
@@ -32,14 +32,9 @@ async def custom_token_auth() -> Response:
     return response
 
 
-catch_all_route = None
-for route in app.routes:
-    if route.path == "/{full_path:path}":
-        catch_all_route = route
-
-if catch_all_route:
-    app.routes.remove(catch_all_route)
-    app.routes.append(catch_all_route)
+# FastAPI >= 0.137 keeps included routers in app.routes as a tree. Move the SPA
+# fallback last so the /auth/* endpoints above are reachable.
+ensure_spa_fallback_last()
 
 
 @cl.on_chat_start

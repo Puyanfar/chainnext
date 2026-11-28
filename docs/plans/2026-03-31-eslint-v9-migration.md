@@ -1,5 +1,8 @@
 # ESLint v9 Flat Config Migration + lint-staged Unification
 
+> **Status:** Completed. ESLint is now 10.x (see CHANGELOG 2.11.0); this plan is
+> retained as a historical record.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Migrate ESLint from v8 (`.eslintrc`) to v9 (flat config) so that `eslint` with no args defaults to `.` (all files), while explicit file args override this — enabling lint-staged to pass staged files via `pnpm --filter` without linting the entire package.

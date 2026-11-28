@@ -1,15 +1,15 @@
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING
 
 from chainlit.context import context
 
 if TYPE_CHECKING:
     from chainlit.message import Message
 
-chat_contexts: Dict[str, List["Message"]] = {}
+chat_contexts: dict[str, list[Message]] = {}
 
 
 class ChatContext:
-    def get(self) -> List["Message"]:
+    def get(self) -> list[Message]:
         if not context.session:
             return []
 
@@ -19,7 +19,7 @@ class ChatContext:
 
         return chat_contexts[context.session.id].copy()
 
-    def add(self, message: "Message"):
+    def add(self, message: Message):
         if not context.session:
             return
 
@@ -31,7 +31,7 @@ class ChatContext:
 
         return message
 
-    def remove(self, message: "Message") -> bool:
+    def remove(self, message: Message) -> bool:
         if not context.session:
             return False
 

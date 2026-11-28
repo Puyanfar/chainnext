@@ -1,8 +1,8 @@
 import os
-from typing import Dict, List, Optional
 
 import chainlit as cl
 import chainlit.data as cl_data
+from chainlit.data.utils import queue_until_user_message
 from chainlit.element import Element, ElementDict
 from chainlit.step import StepDict
 from chainlit.types import (
@@ -20,7 +20,43 @@ os.environ["CHAINLIT_AUTH_SECRET"] = "SUPER_SECRET"  # nosec B105
 now = utc_now()
 
 # Simple in-memory persistence for threads per user
-THREADS: Dict[str, List[ThreadDict]] = {}
+THREADS: dict[str, list[ThreadDict]] = {}
+
+
+def find_thread(thread_id: str) -> ThreadDict | None:
+    """Return the stored thread with this id, whichever user bucket holds it."""
+    for threads in THREADS.values():
+        for thread in threads:
+            if thread["id"] == thread_id:
+                return thread
+    return None
+
+
+def ensure_thread(thread_id: str, user_id: str | None = None) -> ThreadDict:
+    """Return the stored thread with this id, creating the row if needed.
+
+    Steps can be persisted before the first `update_thread` call, so a row may
+    have to be created without an owner. Re-home it when the owner shows up
+    instead of appending a second, empty row under the user.
+    """
+    thread = find_thread(thread_id)
+    if thread is None:
+        thread = {
+            "id": thread_id,
+            "createdAt": utc_now(),
+            "userId": user_id,
+            "userIdentifier": user_id,
+            "name": thread_id,
+            "steps": [],
+        }
+        THREADS.setdefault(user_id or "", []).append(thread)
+    elif user_id and thread.get("userIdentifier") != user_id:
+        for uid, threads in THREADS.items():
+            THREADS[uid] = [t for t in threads if t is not thread]
+        thread["userId"] = user_id
+        thread["userIdentifier"] = user_id
+        THREADS.setdefault(user_id, []).append(thread)
+    return thread
 
 
 class MemoryDataLayer(cl_data.BaseDataLayer):
@@ -44,25 +80,35 @@ class MemoryDataLayer(cl_data.BaseDataLayer):
     ) -> str:
         pass
 
-    async def create_element(self, element: "Element"):
+    async def create_element(self, element: Element):
         pass
 
-    async def get_element(
-        self, thread_id: str, element_id: str
-    ) -> Optional["ElementDict"]:
+    async def get_element(self, thread_id: str, element_id: str) -> ElementDict | None:
         pass
 
-    async def delete_element(self, element_id: str, thread_id: Optional[str] = None):
+    async def delete_element(self, element_id: str, thread_id: str | None = None):
         pass
 
-    async def create_step(self, step_dict: "StepDict"):
-        pass
+    @queue_until_user_message()
+    async def create_step(self, step_dict: StepDict):
+        thread_id = step_dict.get("threadId")
+        if not thread_id:
+            return
+        steps = ensure_thread(thread_id)["steps"]
+        for index, existing in enumerate(steps):
+            if existing["id"] == step_dict["id"]:
+                steps[index] = step_dict
+                return
+        steps.append(step_dict)
 
-    async def update_step(self, step_dict: "StepDict"):
-        pass
+    @queue_until_user_message()
+    async def update_step(self, step_dict: StepDict):
+        await self.create_step(step_dict)
 
+    @queue_until_user_message()
     async def delete_step(self, step_id: str):
-        pass
+        for thread in (t for threads in THREADS.values() for t in threads):
+            thread["steps"] = [s for s in thread["steps"] if s["id"] != step_id]
 
     async def get_thread_author(self, thread_id: str) -> str:
         return (await self.get_thread(thread_id))["userIdentifier"]
@@ -81,7 +127,7 @@ class MemoryDataLayer(cl_data.BaseDataLayer):
             pageInfo=PageInfo(hasNextPage=False, startCursor=None, endCursor=None),
         )
 
-    async def get_thread(self, thread_id: str) -> "Optional[ThreadDict]":
+    async def get_thread(self, thread_id: str) -> ThreadDict | None:
         for threads in THREADS.values():
             for t in threads:
                 if t["id"] == thread_id:
@@ -91,23 +137,12 @@ class MemoryDataLayer(cl_data.BaseDataLayer):
     async def update_thread(
         self,
         thread_id: str,
-        name: Optional[str] = None,
-        user_id: Optional[str] = None,
-        metadata: Optional[Dict] = None,
-        tags: Optional[List[str]] = None,
+        name: str | None = None,
+        user_id: str | None = None,
+        metadata: dict | None = None,
+        tags: list[str] | None = None,
     ):
-        user_threads = THREADS.setdefault(user_id or "", [])
-        thr = next((t for t in user_threads if t["id"] == thread_id), None)
-        if not thr:
-            thr = {
-                "id": thread_id,
-                "createdAt": utc_now(),
-                "userId": user_id,
-                "userIdentifier": user_id,
-                "name": name or thread_id,
-                "steps": [],
-            }
-            user_threads.append(thr)
+        thr = ensure_thread(thread_id, user_id)
         if name:
             thr["name"] = name
         if metadata is not None:
@@ -115,7 +150,7 @@ class MemoryDataLayer(cl_data.BaseDataLayer):
         if tags is not None:
             thr["tags"] = tags
 
-    async def get_favorite_steps(self, user_id: str) -> List["StepDict"]:
+    async def get_favorite_steps(self, user_id: str) -> list[StepDict]:
         return []
 
     async def build_debug_url(self) -> str:
@@ -131,7 +166,7 @@ def data_layer():
 
 
 @cl.password_auth_callback
-def auth(username: str, password: str) -> Optional[cl.User]:
+def auth(username: str, password: str) -> cl.User | None:
     if (username, password) in [("alice", "a"), ("bob", "b")]:
         return cl.PersistedUser(id=username, createdAt=now, identifier=username)
     return None

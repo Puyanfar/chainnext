@@ -3,6 +3,7 @@ import importlib
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from fastapi.routing import iter_route_contexts
 
 
 @pytest.mark.asyncio
@@ -49,6 +50,6 @@ def test_slack_http_route_registered(monkeypatch):
     server = importlib.reload(importlib.import_module("chainlit.server"))
 
     assert any(
-        route.path == "/slack/events" and "POST" in route.methods
-        for route in server.router.routes
+        ctx.path == "/slack/events" and "POST" in (ctx.methods or set())
+        for ctx in iter_route_contexts(server.router.routes)
     ), "Slack HTTP handler route was not registered"

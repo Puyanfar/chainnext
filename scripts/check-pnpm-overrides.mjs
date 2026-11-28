@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Fail when a pnpm.overrides entry is declared but not applied in the lockfile.
+ * Fail when an `overrides` entry in pnpm-workspace.yaml is not applied in one of the
+ * workspace lockfiles.
  *
  * `pnpm install --frozen-lockfile` only checks that the lockfile agrees with the
  * manifest. It does not check that resolved versions satisfy override targets, so
@@ -315,7 +316,45 @@ function rel(path) {
   return relative(ROOT, path) || '.';
 }
 
-function checkPackage(dir) {
+function parseWorkspaceOverrides(content) {
+  const overrides = {};
+  let inOverrides = false;
+  for (const line of content.split('\n')) {
+    if (!inOverrides) {
+      inOverrides = /^overrides:\s*(#.*)?$/.test(line);
+      continue;
+    }
+    if (line.trim() === '' || /^\s*#/.test(line)) {
+      continue;
+    }
+    if (!line.startsWith(' ')) {
+      break;
+    }
+    const match = line.match(/^ {2}('[^']*'|"[^"]*"|[^:'"]+?):\s+(.+?)\s*$/);
+    if (!match) {
+      throw new Error(`cannot parse overrides entry: ${line.trim()}`);
+    }
+    overrides[unquote(match[1])] = unquote(match[2].replace(/\s+#.*$/, ''));
+  }
+  return overrides;
+}
+
+function readDeclaredOverrides() {
+  const path = join(ROOT, 'pnpm-workspace.yaml');
+  try {
+    return {
+      path,
+      overrides: parseWorkspaceOverrides(readFileSync(path, 'utf8'))
+    };
+  } catch (err) {
+    return {
+      path,
+      error: `${rel(path)}: cannot read overrides (${err.message})`
+    };
+  }
+}
+
+function checkPackage(dir, declared) {
   const packageJsonPath = join(ROOT, dir, 'package.json');
   const lockfilePath = join(ROOT, dir, 'pnpm-lock.yaml');
   const pkgRel = rel(packageJsonPath);
@@ -328,29 +367,34 @@ function checkPackage(dir) {
     return [`${pkgRel}: cannot read package.json (${err.message})`];
   }
 
-  const declared = pkg.pnpm?.overrides;
-  if (!declared || !Object.keys(declared).length) {
-    return [];
+  const problems = [];
+  if (pkg.pnpm !== undefined) {
+    problems.push(
+      `${pkgRel}: the "pnpm" field is ignored by pnpm >= 12; move its settings to pnpm-workspace.yaml`
+    );
+  }
+
+  if (!Object.keys(declared).length) {
+    return problems;
   }
 
   let lockfile;
   try {
     lockfile = parseLockfile(readFileSync(lockfilePath, 'utf8'));
   } catch (err) {
-    return [`${lockRel}: cannot read lockfile (${err.message})`];
+    return [...problems, `${lockRel}: cannot read lockfile (${err.message})`];
   }
 
-  const problems = [];
   for (const [selector, target] of Object.entries(declared)) {
     if (typeof target !== 'string') {
       problems.push(
-        `${pkgRel}: override "${selector}" target must be a string`
+        `pnpm-workspace.yaml: override "${selector}" target must be a string`
       );
       continue;
     }
     if (lockfile.overrides[selector] !== target) {
       problems.push(
-        `${pkgRel}: override "${selector}" -> "${target}" is not recorded in ${lockRel}`
+        `pnpm-workspace.yaml: override "${selector}" -> "${target}" is not recorded in ${lockRel}`
       );
     }
     problems.push(
@@ -432,6 +476,22 @@ function selfTest() {
     'parent-scoped overrides must be rejected instead of treated as package-wide'
   );
 
+  assert.deepEqual(
+    parseWorkspaceOverrides(
+      [
+        'packages:',
+        '  - frontend/',
+        'overrides:',
+        '  # comment',
+        "  ws@>=8.0.0 <8.21.0: '>=8.21.0 <9.0.0'",
+        "  '@scope/pkg': 1.2.3",
+        'allowBuilds:',
+        '  esbuild: true'
+      ].join('\n')
+    ),
+    { 'ws@>=8.0.0 <8.21.0': '>=8.21.0 <9.0.0', '@scope/pkg': '1.2.3' }
+  );
+
   assert.throws(
     () => assertRangeParseable('^1.2.3', 'target'),
     /simple comparators/
@@ -441,10 +501,18 @@ function selfTest() {
 function main() {
   selfTest();
 
-  const problems = WORKSPACE_PACKAGES.flatMap(checkPackage);
+  const declared = readDeclaredOverrides();
+  if (declared.error) {
+    console.error(declared.error);
+    process.exit(1);
+  }
+
+  const problems = WORKSPACE_PACKAGES.flatMap((dir) =>
+    checkPackage(dir, declared.overrides)
+  );
   if (problems.length) {
     console.error(
-      'pnpm.overrides are declared but not applied in the lockfile:\n'
+      'pnpm overrides are misconfigured or not applied in the lockfiles:\n'
     );
     for (const problem of problems) {
       console.error(`  ${problem}`);
@@ -456,7 +524,7 @@ function main() {
   }
 
   console.log(
-    `Checked pnpm.overrides in ${WORKSPACE_PACKAGES.join(', ')}: resolved versions match override targets.`
+    `Checked ${Object.keys(declared.overrides).length} overrides from pnpm-workspace.yaml against ${WORKSPACE_PACKAGES.join(', ')}: resolved versions match override targets.`
   );
 }
 
